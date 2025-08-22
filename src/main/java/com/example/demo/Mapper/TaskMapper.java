@@ -47,17 +47,17 @@ public interface TaskMapper {
     boolean addTempTask(@Param("taskData") TaskData taskData);
 
 
-    @Select({"select * from tempTaskTable "})
+    @Select({"select * from temptasktable "})
     List<TaskData> selectAllTempTask();
 
-    @Select({"select count(1) from tempTaskTable where id = #{id} "})
+    @Select({"select count(1) from temptasktable where id = #{id} "})
     Integer selectCountByIdTempTask(@Param("id")Integer id);
 
-    @Select({"select * from tempTaskTable where  beginTimeFrom < #{endTime} "})
+    @Select({"select * from temptasktable where  beginTimeFrom < #{endTime} "})
     List<TaskData> selectTempTaskByEndTime(@Param("endTime")Date endTime);
 
 
-    @Delete({"delete from tempTaskTable where id= #{taskData.id}"})
+    @Delete({"delete from temptasktable where id= #{taskData.id}"})
     boolean deleteTempTask(@Param("taskData") TaskData taskData);
 
     Integer getTaskListCount();
