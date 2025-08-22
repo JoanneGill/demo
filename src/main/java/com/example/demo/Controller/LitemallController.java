@@ -145,17 +145,17 @@ public class LitemallController {
                 taskData.setRoomId(roomId);
 
                 String xiguaName = xiguaAddress.getXiGuaName(roomId);
-                if (xiguaName == null){
+                if (xiguaName == null || xiguaName.isEmpty() || xiguaName.isBlank()){
                     xiguaName = xiguaAddress.getXiGuaName(roomId);
                 }
                 if (xiguaName != null){
                     taskData.setVideoName(xiguaName);
                     taskData.setVideoNameXiGua(xiguaName);
                 }
-                if (xiguaName == null){
+                if (xiguaName == null || xiguaName.isEmpty() || xiguaName.isBlank()){
                     return AjaxResult.fail(404,"名字解析错误");
                 }
-            }
+            } else { return AjaxResult.fail(404,"地址错误"); }
         }
 
         if (StrUtil.isEmptyIfStr(taskData.getRoomId()) || StrUtil.isEmptyIfStr(taskData.getVideoName()) || !NumberUtil.isNumber(taskData.getRoomId())){

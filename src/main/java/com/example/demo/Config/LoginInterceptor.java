@@ -27,7 +27,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         if(session == null || session.getAttribute(ApplicationVariable.SESSION_KEY_USERINFO) == null){
             //用户未登陆
-            response.sendRedirect("/login-1.html");
+//            response.sendRedirect("/login-1.html");
             return false;
         }
 
