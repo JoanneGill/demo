@@ -49,6 +49,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.HashMap;
@@ -78,9 +79,10 @@ import java.util.regex.Pattern;
 public class XiguaAddress {
 
 
-    @Autowired
-    public  DouyinRoomInfo douyinRoomInfo;
+//    @Autowired
+//    public  DouyinRoomInfo douyinRoomInfo;
 
+//    String driverPath =  "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
     String driverPath =  "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe";
 
     String IP = "http://123.207.35.183:8998";
@@ -94,14 +96,17 @@ public class XiguaAddress {
 
 
     public static JsonArray getIpAndPortList() throws IOException {
-        String filePath = "D:/jiaoben/config/jiexi.txt"; // 修改为你的文件路径
+//        String filePath = "D:/jiaoben/config/jiexi.txt"; // 修改为你的文件路径
+        String filePath = "config/jiexi.txt"; // 修改为你的文件路径
         // 读取JSON文件内容
+        System.getProperty("user.dir");
         String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));
         return new JsonParser().parse(jsonContent).getAsJsonObject().get("jiexiIp").getAsJsonArray();
     }
 
     public static JsonArray getIpAndPortListYellowish() throws IOException {
-        String filePath = "D:/jiaoben/config/jiexi.txt"; // 修改为你的文件路径
+        String filePath = "config/jiexi.txt"; // 修改为你的文件路径
+//        String filePath = "D:/jiaoben/config/jiexi.txt"; // 修改为你的文件路径
         // 读取JSON文件内容
         String jsonContent = new String(Files.readAllBytes(Paths.get(filePath)));
         return new JsonParser().parse(jsonContent).getAsJsonObject().get("yellowish").getAsJsonArray();
@@ -146,9 +151,14 @@ public class XiguaAddress {
 
     }
 
-    public  XiguaAddress(){
-        System.setProperty("webdriver.chrome.driver", driverPath);
+
+    public  XiguaAddress() throws IOException {
+
+//            System.setProperty("webdriver.chrome.driver", driverPath);
+
         //        FirefoxOptions firefoxOptions =new FirefoxOptions();
+        synchronized (this) {
+            if (driver == null) {
         // 设置允许弹框
         options.addArguments("disable-infobars","disable-web-security");
 
@@ -161,20 +171,17 @@ public class XiguaAddress {
 // 1. 设置页面加载策略为 EAGER（不等待图片加载）
         options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 
-        // 2. 禁用图片加载（可选）
-//        Map<String, Object> prefs = new HashMap<>();
-//        prefs.put("profile.managed_default_content_settings.images", 2); // 2 = 禁止加载图片
-//        options.setExperimentalOption("prefs", prefs);
-
         // 3. 添加其他优化参数（可选）
         options.addArguments("--disable-extensions");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-
+        Path profileDir = java.nio.file.Files.createTempDirectory("chrome-profile-");
+        options.addArguments("--user-data-dir=" + profileDir.toAbsolutePath().toString());
         driver = new ChromeDriver(options);
 //        firefoxOptions.addArguments("-moz-mobile");
-
+            }
+        }
 
     }
 
