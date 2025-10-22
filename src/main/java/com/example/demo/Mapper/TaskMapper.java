@@ -15,7 +15,7 @@ import java.util.List;
 public interface TaskMapper {
 
 
-    @Insert({"insert into taskTable (roomAddress,time,type,weight,number) values(#{roomAddress},#{time},#{type},#{weight},#{number})"})
+    @Insert({"insert into tasktable (roomAddress,time,type,weight,number) values(#{roomAddress},#{time},#{type},#{weight},#{number})"})
     public boolean setTask(@Param("taskData")TaskData taskData);
 
 
@@ -24,13 +24,13 @@ public interface TaskMapper {
 
     public boolean updateUser(@Param("userList")List<User> userList );
 
-   @Insert({"insert deviceData(cardNo, deviceId, deviceNickName, roomId, personName, state, startWorkingState, lastWorkingState, duration, `date`)" +
+   @Insert({"insert devicedata(cardNo, deviceId, deviceNickName, roomId, personName, state, startWorkingState, lastWorkingState, duration, `date`)" +
            "values(#{dv.cardNo},#{dv.deviceId},#{dv.deviceNickName},#{dv.roomId},#{dv.personName},#{dv.state},#{dv.startWorkingState},#{dv.lastWorkingState},#{dv.duration},now())"})
-    Boolean insertDeviceDataOnce(@Param("dv") DeviceData deviceData);
+    Boolean insertDeviceDataOnce(@Param("dv") DeviceData devicedata);
 
      List<TaskData>  getTaskList(@Param("pageSize")Integer pageSize,@Param("size") Integer size );
 
-     @Insert({"insert into taskTable (time, roomAddress, duration, videoName, number, roomId, state, integral, realDieTime," +
+     @Insert({"insert into tasktable (time, roomAddress, duration, videoName, number, roomId, state, integral, realDieTime," +
              "numberStatic,beginTimeFrom,beginTimeTo,creatIntegral,personAddress)" +
              "values (#{taskData.time},#{taskData.roomAddress},#{taskData.duration},#{taskData.videoName},#{taskData.number}," +
              "#{taskData.roomId},#{taskData.state},#{taskData.integral},#{taskData.realDieTime},#{taskData.numberStatic}," +
@@ -70,7 +70,7 @@ public interface TaskMapper {
     Integer getOneDayTotalIntegral(String searchDate);
 
 
-    @Delete({"delete from taskTable where realDieTime < #{date}"})
+    @Delete({"delete from tasktable where realDieTime < #{date}"})
     boolean deleteTaskByTime(@Param("date") String date);
 
 }

@@ -26,7 +26,7 @@ public interface UserMapper {
     Boolean exchangeIntegral(@Param("cardNo") String cardNo,@Param("integral") Long integral);
 
 
-    @Select({"select * from  exchangeIntegral where cardNo=#{cardNo}"})
+    @Select({"select * from  exchangeintegral where cardNo=#{cardNo}"})
     List<ExchangeIntegral> selectMyExchangeIntegral(@Param("cardNo") String cardNo);
 
 
@@ -48,7 +48,7 @@ public interface UserMapper {
     @Update({"update  user set availableIntegral= #{t} where cardNo=#{cardNo}"})
     boolean changeIntegral(@Param("cardNo") String cardNo,@Param("t") Long tempIntegral);
 
-    @Insert({"insert into adminSetTempIntegral(cardNo,tempIntegral,changeTime) values(#{cardNo},#{tempIntegral},now())"})
+    @Insert({"insert into adminsettempintegral(cardNo,tempIntegral,changeTime) values(#{cardNo},#{tempIntegral},now())"})
     boolean addChangeTempIntegral(String cardNo, Long tempIntegral);
 
     @Update({"update user set state = #{state} where cardNo = #{cardNo}"})

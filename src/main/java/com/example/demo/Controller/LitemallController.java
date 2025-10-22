@@ -97,7 +97,7 @@ public class LitemallController {
         //设置截止时间戳
         taskData.setTime(String.valueOf(DateUtil.parse(taskData.beginTimeTo).getTime()));
 
-        log.error(taskData.getBeginTimeTo()+taskData.getBeginTimeFrom()+taskData.getDuration());
+        log.info(taskData.getBeginTimeTo()+taskData.getBeginTimeFrom()+taskData.getDuration());
 
         if (taskData.integral ==null || taskData.integral <= 0){
             return AjaxResult.fail(405,"请输入任务每分钟积分");
