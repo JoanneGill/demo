@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
@@ -104,40 +105,50 @@ public class XiguaAddress {
 
     private ChromeDriver createChromeDriver() {
         log.info("开始初始化 ChromeDriver (headless={}, enabled={})", headless, browserEnabled);
+        Path profileTempDir = null;
+        Path cacheTempDir = null;
         try {
-            // 自动下载/匹配驱动
-//            WebDriverManager.chromedriver().setup();
-
             ChromeOptions options = new ChromeOptions();
-//            options.addArguments("--disable-infobars");
-//            options.addArguments("--disable-web-security");
-//            options.addArguments("--remote-allow-origins=*");
-//            options.addArguments("--disable-extensions");
-//            options.addArguments("--disable-gpu");
-//            options.addArguments("--no-sandbox");
-//            options.addArguments("--disable-dev-shm-usage");
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
             if (headless) {
                 options.addArguments("--headless=new");
             }
+
+            // 常用稳定参数（容器/无头友好）
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--remote-allow-origins=*");
 
             // 移动端模拟
             Map<String, String> mobileEmulation = new HashMap<>();
             mobileEmulation.put("deviceName", "iPhone XR");
             options.setExperimentalOption("mobileEmulation", mobileEmulation);
 
-//            profileTempDir = Files.createTempDirectory("xigua-chrome-profile-");
-//            cacheTempDir = Files.createTempDirectory("xigua-chrome-cache-");
-//            options.addArguments("--user-data-dir=" + profileTempDir.toAbsolutePath());
-//            options.addArguments("--disk-cache-dir=" + cacheTempDir.toAbsolutePath());
-//
-//            log.info("使用 user-data-dir = {}", profileTempDir);
-//            log.info("使用 disk-cache-dir = {}", cacheTempDir);
+            // 创建唯一临时目录，确保使用字符串路径
+            profileTempDir = Files.createTempDirectory("xigua-chrome-profile-" + UUID.randomUUID());
+            cacheTempDir = Files.createTempDirectory("xigua-chrome-cache-" + UUID.randomUUID());
+            options.addArguments("--user-data-dir=" + profileTempDir.toAbsolutePath().toString());
+            options.addArguments("--disk-cache-dir=" + cacheTempDir.toAbsolutePath().toString());
+
+            log.info("使用 user-data-dir = {}", profileTempDir);
+            log.info("使用 disk-cache-dir = {}", cacheTempDir);
 
             ChromeDriver drv = new ChromeDriver(options);
             log.info("ChromeDriver 启动成功 (sessionId={})", drv.getSessionId());
             return drv;
         } catch (Exception e) {
+            // 发生异常时清理刚创建的临时目录，避免残留锁或占用
+            try {
+                if (profileTempDir != null && Files.exists(profileTempDir)) {
+                    FileUtils.deleteDirectory(profileTempDir.toFile()); // 使用 commons-io 或自行删除递归
+                }
+                if (cacheTempDir != null && Files.exists(cacheTempDir)) {
+                    FileUtils.deleteDirectory(cacheTempDir.toFile());
+                }
+            } catch (IOException ex) {
+                log.warn("清理临时目录失败: {}", ex.getMessage());
+            }
             throw new RuntimeException("初始化 ChromeDriver 失败: " + e.getMessage(), e);
         }
     }
