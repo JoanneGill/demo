@@ -50,15 +50,15 @@ public class File {
 
         String uuid = IdUtil.fastSimpleUUID();
         String fileUUID = uuid + StrUtil.DOT + type; //41b1076684904f9cb4a503fb028db94b.jpg
-        java.io.File uploadFile = new java.io.File(fileUrlEC + fileUUID);
-        //先存储到磁盘
-        if (!uploadFile.getParentFile().exists()) {
-            uploadFile.getParentFile().mkdirs();
-        }
-        try {
-            file.transferTo(uploadFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+        Path uploadPath = Paths.get(fileUrlEC,  fileUUID);
+        // 5. 创建父目录
+        Files.createDirectories(uploadPath.getParent());
+        try (ReadableByteChannel inputChannel = Channels.newChannel(file.getInputStream());
+             FileChannel outputChannel = FileChannel.open(uploadPath,
+                     StandardOpenOption.CREATE,
+                     StandardOpenOption.WRITE,
+                     StandardOpenOption.TRUNCATE_EXISTING)) {
+            outputChannel.transferFrom(inputChannel, 0, file.getSize());
         }
         //获取文件的md5
         //使用m5 避免重复上传相同的文件
@@ -83,15 +83,15 @@ public class File {
 
         String uuid = IdUtil.fastSimpleUUID();
         String fileUUID = uuid + StrUtil.DOT + type; //41b1076684904f9cb4a503fb028db94b.jpg
-        java.io.File uploadFile = new java.io.File(fileUrlQR + fileUUID);
-        //先存储到磁盘
-        if (!uploadFile.getParentFile().exists()) {
-            uploadFile.getParentFile().mkdirs();
-        }
-        try {
-            file.transferTo(uploadFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+        Path uploadPath = Paths.get(fileUrlQR,  fileUUID);
+        // 5. 创建父目录
+        Files.createDirectories(uploadPath.getParent());
+        try (ReadableByteChannel inputChannel = Channels.newChannel(file.getInputStream());
+             FileChannel outputChannel = FileChannel.open(uploadPath,
+                     StandardOpenOption.CREATE,
+                     StandardOpenOption.WRITE,
+                     StandardOpenOption.TRUNCATE_EXISTING)) {
+            outputChannel.transferFrom(inputChannel, 0, file.getSize());
         }
         //获取文件的md5
         //使用m5 避免重复上传相同的文件
@@ -99,44 +99,6 @@ public class File {
 
         return "/user/qrImg/"+fileUUID;
     }
-
-
-//    public String adddeviceScreenImg(MultipartFile file, String roomId,String videoName,String deviceId) {
-//
-//        String originalFilename = file.getOriginalFilename(); //获取文件名
-//
-//        String type = FileUtil.extName(originalFilename);//
-//
-//        Pattern pattern = Pattern.compile("[\\s\\\\/:\\*\\?\\\"<>\\|]");
-//        Matcher matcher = pattern.matcher(videoName);
-//        videoName= matcher.replaceAll("");
-//
-//
-//        long size = file.getSize();//大小
-//
-//        String uuid = IdUtil.fastSimpleUUID();
-//
-//        String fileUUID = deviceId+"kkkkkk"+uuid + StrUtil.DOT + type; //41b1076684904f9cb4a503fb028db94b.jpg
-//
-//
-//        java.io.File uploadFile = new java.io.File(fileUrlScreenImg +roomId+videoName+"/"+ fileUUID);
-//
-//        //先存储到磁盘
-//        if (!uploadFile.getParentFile().exists()) {
-//            uploadFile.getParentFile().mkdirs();
-//        }
-//        try {
-//            file.transferTo(uploadFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        //获取文件的md5
-//        //使用m5 避免重复上传相同的文件
-////        String  md5 = SecureUtil.md5(uploadFile);
-//
-////         return "true";
-//        return "/screen/"+roomId+videoName+"/"+ fileUUID;
-//    }
 
 
 
