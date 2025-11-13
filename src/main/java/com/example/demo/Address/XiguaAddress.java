@@ -62,8 +62,11 @@ public class XiguaAddress {
     @Value("${xigua.browser.enabled:true}")
     private boolean browserEnabled;
 
-    @Value("${xigua.browser.headless:true}")
+    @Value("${xigua.browser.headless:false}")
     private boolean headless;
+
+    @Value("${xigua.jiexi.filepath}")
+    private String filePath;
     // 轮询索引
     private static final AtomicInteger currentIndex = new AtomicInteger(0);
 
@@ -107,6 +110,7 @@ public class XiguaAddress {
         log.info("开始初始化 ChromeDriver (headless={}, enabled={})", headless, browserEnabled);
         Path profileTempDir = null;
         Path cacheTempDir = null;
+        System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
         try {
             ChromeOptions options = new ChromeOptions();
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
@@ -119,36 +123,36 @@ public class XiguaAddress {
             options.addArguments("--disable-dev-shm-usage");
             options.addArguments("--disable-gpu");
             options.addArguments("--remote-allow-origins=*");
-
-            // 移动端模拟
+//
+//            // 移动端模拟
             Map<String, String> mobileEmulation = new HashMap<>();
             mobileEmulation.put("deviceName", "iPhone XR");
             options.setExperimentalOption("mobileEmulation", mobileEmulation);
-
-            // 创建唯一临时目录，确保使用字符串路径
-            profileTempDir = Files.createTempDirectory("xigua-chrome-profile-" + UUID.randomUUID());
-            cacheTempDir = Files.createTempDirectory("xigua-chrome-cache-" + UUID.randomUUID());
-            options.addArguments("--user-data-dir=" + profileTempDir.toAbsolutePath().toString());
-            options.addArguments("--disk-cache-dir=" + cacheTempDir.toAbsolutePath().toString());
-
-            log.info("使用 user-data-dir = {}", profileTempDir);
-            log.info("使用 disk-cache-dir = {}", cacheTempDir);
+//
+//            // 创建唯一临时目录，确保使用字符串路径
+//            profileTempDir = Files.createTempDirectory("xigua-chrome-profile-" + UUID.randomUUID());
+//            cacheTempDir = Files.createTempDirectory("xigua-chrome-cache-" + UUID.randomUUID());
+//            options.addArguments("--user-data-dir=" + profileTempDir.toAbsolutePath().toString());
+//            options.addArguments("--disk-cache-dir=" + cacheTempDir.toAbsolutePath().toString());
+//
+//            log.info("使用 user-data-dir = {}", profileTempDir);
+//            log.info("使用 disk-cache-dir = {}", cacheTempDir);
 
             ChromeDriver drv = new ChromeDriver(options);
             log.info("ChromeDriver 启动成功 (sessionId={})", drv.getSessionId());
             return drv;
         } catch (Exception e) {
             // 发生异常时清理刚创建的临时目录，避免残留锁或占用
-            try {
-                if (profileTempDir != null && Files.exists(profileTempDir)) {
-                    FileUtils.deleteDirectory(profileTempDir.toFile()); // 使用 commons-io 或自行删除递归
-                }
-                if (cacheTempDir != null && Files.exists(cacheTempDir)) {
-                    FileUtils.deleteDirectory(cacheTempDir.toFile());
-                }
-            } catch (IOException ex) {
-                log.warn("清理临时目录失败: {}", ex.getMessage());
-            }
+//            try {
+//                if (profileTempDir != null && Files.exists(profileTempDir)) {
+//                    FileUtils.deleteDirectory(profileTempDir.toFile()); // 使用 commons-io 或自行删除递归
+//                }
+//                if (cacheTempDir != null && Files.exists(cacheTempDir)) {
+//                    FileUtils.deleteDirectory(cacheTempDir.toFile());
+//                }
+//            } catch (IOException ex) {
+//                log.warn("清理临时目录失败: {}", ex.getMessage());
+//            }
             throw new RuntimeException("初始化 ChromeDriver 失败: " + e.getMessage(), e);
         }
     }
@@ -189,14 +193,12 @@ public class XiguaAddress {
 
     // ================== 原有逻辑（小幅调整，仅在需要浏览器时调用 getDriver()） ==================
 
-    public static JsonArray getIpAndPortList() throws IOException {
-        String filePath = "config/jiexi.txt";
+    public  JsonArray getIpAndPortList() throws IOException {
         String jsonContent = Files.readString(Path.of(filePath));
         return JsonParser.parseString(jsonContent).getAsJsonObject().get("jiexiIp").getAsJsonArray();
     }
 
-    public static JsonArray getIpAndPortListYellowish() throws IOException {
-        String filePath = "config/jiexi.txt";
+    public  JsonArray getIpAndPortListYellowish() throws IOException {
         String jsonContent = Files.readString(Path.of(filePath));
         return JsonParser.parseString(jsonContent).getAsJsonObject().get("yellowish").getAsJsonArray();
     }

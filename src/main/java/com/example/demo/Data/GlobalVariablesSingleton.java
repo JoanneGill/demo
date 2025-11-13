@@ -15,12 +15,12 @@ public class GlobalVariablesSingleton {
 
 
    //任务列表
-    private ArrayList<TaskData> taskDataArrayList;
+    private final ArrayList<TaskData> taskDataArrayList;
    //设备列表
-    private ArrayList<DeviceData> deviceDataArrayList;
+    private final ArrayList<DeviceData> deviceDataArrayList;
 
    //用户列表
-    private ArrayList<User> users;
+    private final ArrayList<User> users;
 
     private GlobalVariablesSingleton() {
         // 初始化全局变量

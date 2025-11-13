@@ -149,7 +149,7 @@ IntegralModel integralModel;
         }
 
         //m校验
-        String md5 = SecureUtil.md5(cardNo+password+deviceId+time+"sb1122sb");
+        String md5 = SecureUtil.md5(cardNo+password+deviceId+time+"sb1122sbbbb");
         if (!md5.equals(mid)){
             log.info("sssssssssssssss?????");
             return  AjaxResult.fail(-1,"?????你在做什么,唱歌");

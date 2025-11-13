@@ -58,16 +58,18 @@ public class TaskController {
 @Autowired
     IpUtil ipUtil;
 //在线任务列表
-List<TaskData> taskDataList = GlobalVariablesSingleton.getInstance().getTaskDataArrayList();
+final List<TaskData> taskDataList = GlobalVariablesSingleton.getInstance().getTaskDataArrayList();
 
 //在线设备对象列表
-List<DeviceData> deviceDataList = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
+final List<DeviceData> deviceDataList = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
 
 //用户列表
-List<User> userListGlobal = GlobalVariablesSingleton.getInstance().getUsers();
+final List<User> userListGlobal = GlobalVariablesSingleton.getInstance().getUsers();
 
 //线程锁
 boolean lock = false;
+// 每个任务在最近 20 秒内最多领取次数限制（20s -> 10 次）
+private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
 
     @GetMapping("/getTask")
     public AjaxResult getTask(@PathParam("cardNo") String cardNo, @PathParam("personName") String personName, @PathParam("time") String time,
@@ -77,7 +79,7 @@ boolean lock = false;
 
         Long timeNow = System.currentTimeMillis();
         //1校验数据md5
-        String md5 = SecureUtil.md5(cardNo+personName+time+deviceId+deviceNickName+"sb1314520sbNB$HHHHH");
+        String md5 = SecureUtil.md5(cardNo+personName+time+deviceId+deviceNickName+"sb1314520sbNB$HHHHHHHH");
 
           if (!md5.equals(mid)){
               log.error(" error md5 find  check  !!!!!!!!!!");
@@ -93,10 +95,12 @@ boolean lock = false;
         int deviceIndex = 0; //记录设备在设备列表的索引
         TaskData  taskData = null; //要分配的任务
         boolean hasUser = false;//设备用户是否在用户列表中
-        for (int i = 0; i < userListGlobal.size(); i++) {
-            if (userListGlobal.get(i).getCardNo().equals(cardNo) && userListGlobal.get(i).getState().equals(1)){  //在账户中 且账户状态正常
-                hasUser =true;
-                break;
+        if (!userListGlobal.isEmpty()){
+            for (int i = 0; i < userListGlobal.size(); i++) {
+                if (userListGlobal.get(i).getCardNo().equals(cardNo) && userListGlobal.get(i).getState().equals(1)){  //在账户中 且账户状态正常
+                    hasUser =true;
+                    break;
+                }
             }
         }
         if (!hasUser && !lock  ){
@@ -147,7 +151,6 @@ boolean lock = false;
                 deviceDataList.get(i).setScreenImgUrl(null);
                 log.info("设备清除任务数据，设备：{}",deviceDataList.get(i).toString());
                 break;
-
             }
         }
         if (has == 0){
@@ -176,77 +179,84 @@ boolean lock = false;
 
         //遍历任务
         Integer taskIndex = null;
-
-        if (StrUtil.isEmptyIfStr(id) || deviceDataList.get(deviceIndex).getId() == null ){
-            for (TaskData data : taskDataList){
-                log.info("遍历任务列表分配任务");
-                if (data.number>0 ){
-                    data.number = data.number - 1;
-                    taskData = data;
-                    break;
-                }
+        if (taskDataList !=null && !taskDataList.isEmpty()){
+        for (int i = 0; i < taskDataList.size(); i++) {
+            if (taskDataList.get(i).getId().equals(id)){
+                taskIndex = i;
+                break;
             }
         }
-        else {
-            for (int i = 0; i < taskDataList.size(); i++) {
-                if (taskDataList.get(i).getId().equals(id)){
-                    taskIndex = i;
-                    break;
-                }
-            }
-            if (taskIndex == null){
-                // 脚本发送的roomid不在当前任务列表
-                for (int i = 0; i < taskDataList.size(); i++) {
-                    log.info("遍历任务列表分配任务");
-                    if (taskDataList.get(i).getNumber()>0 ){
-                        taskDataList.get(i).setNumber(taskDataList.get(i).getNumber()-1);
-                        taskData = taskDataList.get(i);
-                        break;
-                    }
-                }
-            }
-            else if (!StrUtil.isEmptyIfStr(deviceDataList.get(deviceIndex).getId()) && deviceDataList.get(deviceIndex).getId().equals("0")){ //当roomId 为0的时候  1 设备离线 2 一直未进任务
-                for (int i = 0; i < taskDataList.size(); i++) {
-                    if (!taskDataList.get(i).getId().equals(id) && taskDataList.get(i).getNumber()>0){
-                        taskDataList.get(i).setNumber(taskDataList.get(i).getNumber() - 1);
-                        taskData = taskDataList.get(i);
-                        break;
-                    }
-                }
-            }
-            else if(taskDataList.get(taskIndex).getId().equals(deviceDataList.get(deviceIndex).getId()) && !StrUtil.isEmptyIfStr(deviceDataList.get(deviceIndex).getId()) && !deviceDataList.get(deviceIndex).getId().equals("0") && !deviceDataList.get(deviceIndex).getId().equals(id) ){//脚本被分配任务
-
-                taskData = taskDataList.get(taskIndex);
-
-            }
-            else {
-                //上一次的id还在任务列表 说明
-
-                //脚本执行出错 重新领取任务 带上上一次的roomId
-
-                //回收脚本之前接的任务
-                if (!StrUtil.isEmptyIfStr(deviceDataList.get(deviceIndex).getId()) && !deviceDataList.get(deviceIndex).getId().equals("0") && deviceDataList.get(deviceIndex).getId()!= null  &&deviceDataList.get(deviceIndex).getId().equals(id) ){
-                    if (taskDataList.get(taskIndex).getNumber()+1<=taskDataList.get(taskIndex).getNumberStatic()){
-                        taskDataList.get(taskIndex).setNumber(taskDataList.get(taskIndex).getNumber()+1);
-                    }
-
-                    deviceDataList.get(deviceIndex).setRoomId("0");
-                    deviceDataList.get(deviceIndex).setId("0");
-                    //取其他任务
-                    for (int i = 0; i < taskDataList.size(); i++) {
-                        if (!taskDataList.get(i).getId().equals(id) && taskDataList.get(i).getNumber()>0){
-                            taskData = taskDataList.get(i);
-                            taskDataList.get(i).setNumber(taskDataList.get(i).getNumber()-1);
+        }
+        if (StrUtil.isEmptyIfStr(id) || taskIndex == null || deviceDataList.get(deviceIndex).getId() == null){
+            if (taskDataList!=null&&!taskDataList.isEmpty()){
+                synchronized (taskClaimTimestamps) {
+                    for (TaskData data : taskDataList){
+                        if (data == null) continue;
+                        String tid = data.getId();
+                        Deque<Long> dq = taskClaimTimestamps.computeIfAbsent(tid, k -> new ArrayDeque<>());
+                        // 清理过期时间戳（10 秒以前的）
+                        while (!dq.isEmpty() && timeNow - dq.peekFirst() > 10_000L) {
+                            dq.pollFirst();
+                        }
+                        // 如果最近 10s 已达到 10 次领取，跳过该任务
+                        if (dq.size() >= 10) {
+                            log.info("任务 {} 在 10s 内已达到领取上限，跳过", tid);
+                            continue;
+                        }
+                        log.info("遍历任务列表分配任务");
+                        if (data.number>0 ){
+                            data.number = data.number - 1;
+                            taskData = data;
+                            dq.addLast(timeNow);
                             break;
                         }
                     }
                 }
-
-
-
+            }
         }
-        }
+        else{
+            if (!StrUtil.isEmptyIfStr(deviceDataList.get(deviceIndex).getId()) &&
+                    "0".equals(deviceDataList.get(deviceIndex).getId())){ //当roomId 为0的时候  1 设备离线 2 一直未进任务
+                    synchronized (taskClaimTimestamps) {
+                        for (int i = 0; i < taskDataList.size(); i++) {
+                            if (!taskDataList.get(i).getId().equals(id) && taskDataList.get(i).getNumber() > 0) {
+                                taskDataList.get(i).setNumber(taskDataList.get(i).getNumber() - 1);
+                                taskData = taskDataList.get(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            else if(taskDataList.get(taskIndex).getId().equals(deviceDataList.get(deviceIndex).getId()) &&
+                    !StrUtil.isEmptyIfStr(deviceDataList.get(deviceIndex).getId()) &&
+                    !deviceDataList.get(deviceIndex).getId().equals("0") &&
+                    !deviceDataList.get(deviceIndex).getId().equals(id) ){//脚本被分配任务
+                    taskData = taskDataList.get(taskIndex);
+                }
+            //上一次的id还在任务列表 说明
+            //脚本执行出错 重新领取任务 带上上一次的roomId
+            //回收脚本之前接的任务
+            else if (!StrUtil.isEmptyIfStr(deviceDataList.get(deviceIndex).getId()) &&
+                    !deviceDataList.get(deviceIndex).getId().equals("0") && deviceDataList.get(deviceIndex).getId()!= null  &&
+                    deviceDataList.get(deviceIndex).getId().equals(id) ){
+                if (taskDataList.get(taskIndex).getNumber()+1<=taskDataList.get(taskIndex).getNumberStatic()){
+                            taskDataList.get(taskIndex).setNumber(taskDataList.get(taskIndex).getNumber()+1);
+                }
 
+                deviceDataList.get(deviceIndex).setRoomId("0");
+                deviceDataList.get(deviceIndex).setId("0");
+                //取其他任务
+                synchronized (taskClaimTimestamps) {
+                    for (int i = 0; i < taskDataList.size(); i++) {
+                        if (!taskDataList.get(i).getId().equals(id) && taskDataList.get(i).getNumber() > 0) {
+                            taskData = taskDataList.get(i);
+                            taskDataList.get(i).setNumber(taskDataList.get(i).getNumber() - 1);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         //根据taskData 是否为null 来确认分配到任务
         if (taskData!=null){
 
@@ -518,7 +528,7 @@ boolean lock = false;
 
         //只有在脚本接收任务后才会请求该接口 每十秒记录一次任务状态
         //一般 参数 账号、设备唯一标识、设备昵称、直播间id、任务状态（在任务直播间或不在）、当前时间、md5校验
-        String md5 = SecureUtil.md5(checkInfo.getCardNo()+checkInfo.getDeviceId()+checkInfo.getRoomId()+checkInfo.getTime()+checkInfo.getVideoDieOut()+checkInfo.getTaskState()+checkInfo.getId()+"sb1314520sbNB$");
+        String md5 = SecureUtil.md5(checkInfo.getCardNo()+checkInfo.getDeviceId()+checkInfo.getRoomId()+checkInfo.getTime()+checkInfo.getVideoDieOut()+checkInfo.getTaskState()+checkInfo.getId()+"sb1314520sbNB$$$$");
         if (!md5.equals(mid)){return  AjaxResult.fail(-1,"?????你在做什么,唱歌");}
         Long systemTime = System.currentTimeMillis();
         if (!StrUtil.isEmptyIfStr(checkInfo.getVideoDieOut())&&checkInfo.getVideoDieOut().equals("true")){//脚本发现直播间任务结束
@@ -649,14 +659,12 @@ boolean lock = false;
         }
         String md5 = SecureUtil.md5(roomId+videoName+deviceId+mid1+time+"sb1314520sbNB$");
 
-        log.info(multipartFile.toString());
-
         log.info("md5:{},mid1:{},mid2:{},deviceId:{}",md5,mid1,mid2,deviceId);
 
         if (!md5.equals(mid2)){
             return  AjaxResult.fail(-1,"?????你在做什么,唱歌");
         }
-        if (!getMd5(multipartFile).equals(mid1)){
+        if (!DigestUtils.md5Hex(multipartFile.getBytes()).equals(mid1)){
             return  AjaxResult.fail(-1,"?????文件改了");
         }
 
@@ -687,6 +695,7 @@ boolean lock = false;
             for (int i = 0; i < deviceDataList.size() ; i++) {
                 if (deviceDataList.get(i).getDeviceId().equals(deviceId)){
                     deviceDataList.get(i).setScreenImgUrl(name);
+                    break;
                 }
             }
             log.info(name);
@@ -696,24 +705,6 @@ boolean lock = false;
         }
         return AjaxResult.fail(-1, "出错");
 
-    }
-
-
-
-    public String getMd5(MultipartFile file) {
-        try {
-            byte[] uploadBytes = file.getBytes();
-            //file->byte[],生成md5
-            String md5Hex = DigestUtils.md5Hex(uploadBytes);
-            //file->InputStream,生成md5
-            String md5Hex1 = DigestUtils.md5Hex(file.getInputStream());
-            //对字符串生成md5
-            String s = DigestUtils.md5Hex("字符串");
-            return md5Hex ;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return null;
     }
 
     public static boolean isNumeric0(String str) {
