@@ -11,5 +11,6 @@ public class EC {
     public Boolean dialog;//: true,
     public String msg;//: "优化部分问题",
     public Boolean force;//: false
+    public String ec_true_version;
 
 }

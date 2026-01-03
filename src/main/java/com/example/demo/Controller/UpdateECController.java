@@ -28,14 +28,15 @@ public class UpdateECController {
     File ecFile;
     @Autowired
     VersionMapper versionMapper;
-   @Value("${server.port}")
+    @Value("${server.port}")
     String  port;
+    @Value("${ec.base.update.url}")
+    String ecBaseUrl;
     @Auth(user = "1000")
     @PostMapping("/updateEC")
     public AjaxResult upload(@RequestParam("file") MultipartFile multipartFile, @PathParam("version") String version,
-                             @PathParam("message") String message, @PathParam("dialog") Boolean dialog,
+                             @PathParam("ecVersion") String ecVersion, @PathParam("message") String message, @PathParam("dialog") Boolean dialog,
                              @PathParam("force") Boolean force) throws IOException {
-
         try {
 
             String name = ecFile.addEC(multipartFile);
@@ -43,9 +44,10 @@ public class UpdateECController {
                 return AjaxResult.fail(404, "上传文件错误");
             }
             EC ec = new EC();
-            ec.setDownload_url("http://work.luckydbl.top:9500" + name);
+            ec.setDownload_url(ecBaseUrl + name);
             ec.setDialog(true);
             ec.setVersion(version);
+            ec.setEc_true_version(ecVersion);
             ec.setMsg(message);
             ec.setForce(force);
 
@@ -67,9 +69,12 @@ public class UpdateECController {
 
 
     @GetMapping("/getUpdateECVersion")
-    public String getVersion(@PathParam("version") String version) throws IOException {
+    public String getVersion(@PathParam("version") String version  ,@PathParam("ecVersion") String ecTrueVersion) throws IOException {
         log.info("version:{}",version);
-        EC ecVersion = versionMapper.getNewVersion();
+        if (ecTrueVersion==null||ecTrueVersion.length()==0){
+            ecTrueVersion = "9.15.0";
+        }
+        EC ecVersion = versionMapper.getNewVersion(ecTrueVersion);
         if (ecVersion == null) {
             return "";
         }
