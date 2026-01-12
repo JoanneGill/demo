@@ -75,7 +75,7 @@ new Vue({
 					this.force = true
 				}
 				axios.post(
-				"/update/updateEC?version="+this.version+"&message="+this.message+"&force="+this.force,
+				"/update/updateEC?version="+this.version+"&message="+this.message+"&force="+this.force+"&ecVersion="+this.ecVersion,
 				EC,
 				// 第1个参数 url 第二参数 data数据，第三个是配置渲染，
 				// onUploadProgress 当上传进度是

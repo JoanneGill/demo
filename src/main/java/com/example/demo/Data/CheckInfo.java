@@ -15,4 +15,6 @@ public class CheckInfo {
    public Long time;
    public String checkM;
    public String aseKey;
+   public String videoYellow;
+   public String mid2;
 }

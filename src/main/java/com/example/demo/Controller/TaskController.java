@@ -522,16 +522,34 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
 
     //容错表
     Map<String, Integer> checkMap = new HashMap<>();
+    Map<String, Integer> checkMapYellow = new HashMap<>();
     //脚本状态链接
     @PostMapping("/checkState")
     public AjaxResult checkState(@RequestBody CheckInfo checkInfo,@PathParam("mid") String mid){
-
         //只有在脚本接收任务后才会请求该接口 每十秒记录一次任务状态
         //一般 参数 账号、设备唯一标识、设备昵称、直播间id、任务状态（在任务直播间或不在）、当前时间、md5校验
         String md5 = SecureUtil.md5(checkInfo.getCardNo()+checkInfo.getDeviceId()+checkInfo.getRoomId()+checkInfo.getTime()+checkInfo.getVideoDieOut()+checkInfo.getTaskState()+checkInfo.getId()+"sb1314520sbNB$$$$");
         if (!md5.equals(mid)){return  AjaxResult.fail(-1,"?????你在做什么,唱歌");}
         Long systemTime = System.currentTimeMillis();
-        if (!StrUtil.isEmptyIfStr(checkInfo.getVideoDieOut())&&checkInfo.getVideoDieOut().equals("true")){//脚本发现直播间任务结束
+        if ("true".equals(checkInfo.getVideoYellow()) &&
+                SecureUtil.md5(checkInfo.getCardNo()+checkInfo.getDeviceId()+checkInfo.getRoomId()+checkInfo.getTime()
+                                +checkInfo.getVideoDieOut()+checkInfo.getTaskState()+checkInfo.getId()+checkInfo.getVideoYellow()
+                                +"sb1314520sbNB$$$$").equals(checkInfo.getMid2())){
+            checkMapYellow.merge(checkInfo.getId(), 1, Integer::sum);
+            for (int i = 0; i < taskDataList.size(); i++) {
+                if (taskDataList.get(i).getId().equals(checkInfo.getId())){//找到任务直播间 删除他
+                    Integer num = (int) (taskDataList.get(i).getNumberStatic()* 0.2);
+                    if (checkMapYellow.get(checkInfo.getId())>num){
+                        log.info("find the end room yellow deleteTaskById:{}", checkInfo);
+                        taskModel.deleteTaskById(checkInfo.getId());
+                        checkMapYellow.remove(checkInfo.getId());
+                        break;
+                    }
+                }
+            }
+            return AjaxResult.fail(400,"任务失效");
+        }
+        else if (!StrUtil.isEmptyIfStr(checkInfo.getVideoDieOut())&&checkInfo.getVideoDieOut().equals("true")){//脚本发现直播间任务结束
             checkMap.merge(checkInfo.getId(), 1, Integer::sum);
             if (checkMap.get(checkInfo.getId())>10){
                 for (int i = 0; i < taskDataList.size(); i++) {

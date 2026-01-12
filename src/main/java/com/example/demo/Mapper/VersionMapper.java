@@ -8,10 +8,10 @@ import org.apache.ibatis.annotations.*;
 public interface VersionMapper {
 
 
-    @Insert({"insert into ecversion(download_url,version,dialog,msg,`force`) values(#{download_url},#{version},#{dialog},#{msg},#{force})"})
+    @Insert({"insert into ecversion(download_url,version,dialog,msg,`force`,ec_true_version) values(#{download_url},#{version},#{dialog},#{msg},#{force},#{ec_true_version})"})
     public Boolean setVersion(EC ec) ;
 
-    @Select({"select * from ecversion  where ecTrueVersion = #{ecTrueVersion} order by id desc limit 1; "})
+    @Select({"select * from ecversion  where ec_true_version = #{ecTrueVersion} order by id desc limit 1; "})
     public EC getNewVersion(String ecTrueVersion);
 //    @Delete({"delete ECVersion where  "})
 //    public boolean deleteAllVersion();
