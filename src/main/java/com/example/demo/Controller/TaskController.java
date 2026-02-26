@@ -22,6 +22,9 @@ import com.example.demo.Model.TaskModel;
 import com.example.demo.common.IpUtil;
 
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.websocket.server.PathParam;
 
@@ -75,6 +78,7 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
     public AjaxResult getTask(@PathParam("cardNo") String cardNo, @PathParam("personName") String personName, @PathParam("time") String time,
                               @PathParam("deviceId") String deviceId, @PathParam("deviceNickName") String deviceNickName,
                               @PathParam("mid") String mid,@PathParam("roomId") String roomId,@PathParam("id") String id,
+                              @PathParam("taskType") String taskType,
                                HttpServletRequest httpServletRequest){
 
         Long timeNow = System.currentTimeMillis();
@@ -283,7 +287,10 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
 
     @Auth(user = "1000")
     @PostMapping("/setTask")
-    public AjaxResult setTask(@RequestBody TaskData taskData ) throws InterruptedException {
+    public AjaxResult setTask(@RequestBody TaskData taskData ) {
+        try {
+
+
         //参数校验
         if ( taskData.number ==null || taskData.number.equals(0)||taskData.number<0){
             return AjaxResult.fail(404,"设备数出错");
@@ -299,10 +306,9 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
         }
 
         if (DateUtil.compare( DateUtil.parse(taskData.beginTimeTo),DateUtil.date())<1){
-
             return AjaxResult.fail(404,"任务最终时间必须大于当前时间");
-
         }
+
         if ( DateUtil.between( DateUtil.date(),DateUtil.parse(taskData.beginTimeTo), DateUnit.MINUTE)<10){
             return AjaxResult.fail(404,"任务时间小于十分钟");
         }
@@ -358,43 +364,24 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
 
             if (taskData.getPersonAddress() !=null && !taskData.getPersonAddress().isEmpty()){
                 String sec_uid =xiguaAddress.getsecuidBypersonAddress(taskData.getPersonAddress());
-                String roomId = xiguaAddress.getRoomIdByPersonAddress(sec_uid);
+                JsonObject jsonElement = JsonParser.parseString(xiguaAddress.getTaskInfoBySecUid(sec_uid)).getAsJsonObject();
+                String roomId = jsonElement.get("roomId").getAsString();
+                String uid = jsonElement.get("uid").getAsString();
                 if (roomId == null || roomId.isEmpty() || roomId.isBlank()){
                     return AjaxResult.fail(404,"地址解析错误");
                 }
 
                 String yellowish = xiguaAddress.getYellowish(roomId);
-                if (yellowish == null || yellowish.isEmpty() || yellowish.isBlank() || "true".equals(yellowish)){
+                if ( "yellow".equals(yellowish)){
                     return AjaxResult.fail(404,"禁止小黄车");
                 }
+                else if ("connect".equals(yellowish)){
+                    return AjaxResult.fail(404,"禁止连线");
+                }
 
-//                int taskCount = 2;
-//                CountDownLatch latch = new CountDownLatch(taskCount);
-
-//                Thread task1 = new Thread(() -> {
-//                    System.out.println("任务 1 开始");
-//                    //获取直播人名
-//                    videoName.set(xiguaAddress.getNickNameByPersonAddress(sec_uid));
-//                    System.out.println("任务 1 完成");
-//                    latch.countDown();
-//                });
-
-//                Thread task2 = new Thread(() -> {
-//                    System.out.println("任务 2 开始");
-//                    xiguaName.set(xiguaAddress.getXiGuaName(roomId));
-//                    System.out.println("任务 2 完成");
-//                    latch.countDown();
-//                });
-//                task1.start();
-//                task2.start();
-                // 等待所有任务完成
-//                latch.await(20, TimeUnit.SECONDS);
-
-//                if (videoName.get() == null){
-//                    return AjaxResult.fail(404,"直播人地址解析错误");
-//                }
                 taskData.setRoomId(roomId);
-//                taskData.setVideoName(videoName.get());
+                taskData.setUid(uid);
+                taskData.setSecUid(sec_uid);
                 xiguaName.set(xiguaAddress.getXiGuaName(roomId));
 
                 if (xiguaName.get() != null){
@@ -416,8 +403,13 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
         taskData.setBeginTimeFrom(DateUtil.date(Calendar.getInstance()).toString());
         taskData.setId(IdUtil.randomUUID());
         taskModel.setTask(taskData);
+        return AjaxResult.success();
+        }
+        catch (Exception e){
+            log.error("setTask error:",e);
+            return AjaxResult.fail(404,"解析出错");
+    }
 
-         return  AjaxResult.success();
     }
 
 
@@ -531,6 +523,8 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
         String md5 = SecureUtil.md5(checkInfo.getCardNo()+checkInfo.getDeviceId()+checkInfo.getRoomId()+checkInfo.getTime()+checkInfo.getVideoDieOut()+checkInfo.getTaskState()+checkInfo.getId()+"sb1314520sbNB$$$$");
         if (!md5.equals(mid)){return  AjaxResult.fail(-1,"?????你在做什么,唱歌");}
         Long systemTime = System.currentTimeMillis();
+
+
         if ("true".equals(checkInfo.getVideoYellow()) &&
                 SecureUtil.md5(checkInfo.getCardNo()+checkInfo.getDeviceId()+checkInfo.getRoomId()+checkInfo.getTime()
                                 +checkInfo.getVideoDieOut()+checkInfo.getTaskState()+checkInfo.getId()+checkInfo.getVideoYellow()

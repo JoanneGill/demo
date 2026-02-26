@@ -69,18 +69,18 @@ public class UpdateECController {
 
 
     @GetMapping("/getUpdateECVersion")
-    public String getVersion(@PathParam("version") String version  ,@PathParam("ecVersion") String ecTrueVersion) throws IOException {
+    public String getVersion(@PathParam("version") String version  ,@PathParam("ecVersion") String ecVersion) throws IOException {
         log.info("version:{}",version);
-        if (ecTrueVersion==null||ecTrueVersion.length()==0){
-            ecTrueVersion = "9.15.0";
+        if (ecVersion==null||ecVersion.length()==0){
+            ecVersion = "9.15.0";
         }
-        EC ecVersion = versionMapper.getNewVersion(ecTrueVersion);
-        if (ecVersion == null) {
+        EC ec= versionMapper.getNewVersion(ecVersion);
+        if (ec == null) {
             return "";
         }
-        if (!ecVersion.getVersion().equals(version)) {
+        if (!ec.getVersion().equals(version)) {
 
-            return   JSONUtil.toJsonStr(ecVersion)   ;
+            return   JSONUtil.toJsonStr(ec);
         }
         else return "";
     }

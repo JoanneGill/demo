@@ -30,6 +30,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -326,6 +327,24 @@ public class XiguaAddress {
                 Document doc = Jsoup.connect(ip + "/dy/getRoomIdByPersonAddress?sec_uid=" + sec_uid).get();
                 String body = doc.body().html();
                 if (StrUtil.isNotBlank(body)) return body;
+                index = (index + 1) % jsonArray.size();
+            }
+            return null;
+        } catch (IOException e) {
+            log.error("getRoomIdByPersonAddress error {}", e.toString());
+            return null;
+        }
+    }
+    public String getTaskInfoBySecUid(String sec_uid) {
+        try {
+            JsonArray jsonArray = getIpAndPortList();
+            System.out.println("sssssssssss"+ jsonArray.toString() +jsonArray.get(0).getAsString());
+            int index = currentIndex.updateAndGet(i -> i % jsonArray.size());
+            RestTemplate restTemplate = new RestTemplate();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                String ip = jsonArray.get(index).getAsString();
+                String response = restTemplate.getForObject(ip + "/dy/getTaskInfoBySecUid?sec_uid=" + sec_uid, String.class);
+                if (StrUtil.isNotBlank(response)) return response;
                 index = (index + 1) % jsonArray.size();
             }
             return null;

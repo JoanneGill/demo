@@ -53,8 +53,13 @@ public class TaskData {
 
     public String personAddress;
 
+    public String type;
 
-     public  String token ;
+    public String uid;
+
+    public String secUid;
+
+    public  String token ;
 
 
     public  Long  creatIntegral;

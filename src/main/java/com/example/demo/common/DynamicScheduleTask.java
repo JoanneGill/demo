@@ -21,6 +21,8 @@ import com.example.demo.Mapper.TaskMapper;
 import com.example.demo.Mapper.UserMapper;
 import com.example.demo.Model.DevicesModel;
 import com.example.demo.Model.TaskModel;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,8 +172,9 @@ public class DynamicScheduleTask  {
                     else if (tempTaskDataList.get(i).getPersonAddress() !=null && !tempTaskDataList.get(i).getPersonAddress().isEmpty()){
                         //解析直播间roomId
                         String sec_uid = xiguaAddress.getsecuidBypersonAddress(tempTaskDataList.get(i).getPersonAddress());
-                        String roomId = xiguaAddress.getRoomIdByPersonAddress(sec_uid);
-                        if (roomId == null || roomId.isEmpty() ){
+                        String info = xiguaAddress.getTaskInfoBySecUid(sec_uid);
+
+                        if (info == null || info.isEmpty() ){
                             log.error("roomId By person address false");
                             // 设置5分钟后再次预约
                             if ((Long.parseLong(tempTaskDataList.get(i).getTime()) - currentTime)/60000 >30){
@@ -183,8 +186,12 @@ public class DynamicScheduleTask  {
                             }
                             continue;
                         }
+                        JsonObject jsonObject = JsonParser.parseString(info).getAsJsonObject();
+                        String roomId = jsonObject.get("roomId").getAsString();
+                        String uid = jsonObject.get("uid").getAsString();
                         //获取直播人名
                         tempTaskDataList.get(i).setRoomId(roomId);
+                        tempTaskDataList.get(i).setUid(uid);
                         String xiguaName = xiguaAddress.getXiGuaName(roomId);
                         if (xiguaName == null){xiguaName = xiguaAddress.getXiGuaName(roomId);}
                         if (xiguaName != null){

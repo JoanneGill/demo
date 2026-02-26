@@ -18,6 +18,8 @@ import com.example.demo.Data.TaskData;
 import com.example.demo.Mapper.TaskMapper;
 import com.example.demo.Model.LitemallModel;
 import com.example.demo.Model.TaskModel;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,19 +133,24 @@ public class LitemallController {
             if (taskData.getPersonAddress() !=null && !taskData.getPersonAddress().isEmpty()){
                 //解析直播间roomId
                 String sec_uid = xiguaAddress.getsecuidBypersonAddress(taskData.getPersonAddress());
-                String roomId = xiguaAddress.getRoomIdByPersonAddress(sec_uid);
-
+                JsonObject jsonElement = JsonParser.parseString(xiguaAddress.getTaskInfoBySecUid(sec_uid)).getAsJsonObject();
+                String roomId = jsonElement.get("roomId").getAsString();
+                String uid = jsonElement.get("uid").getAsString();
                 if (roomId == null ||  roomId.isEmpty() || roomId.isBlank()){
                     return AjaxResult.fail(404,"地址解析错误");
                 }
 
                 String yellowish = xiguaAddress.getYellowish(roomId);
-                if (yellowish == null || yellowish.isEmpty() || yellowish.isBlank() || "true".equals(yellowish)){
+                if ( "yellow".equals(yellowish)){
                     return AjaxResult.fail(404,"禁止小黄车");
+                }
+                else if ("connect".equals(yellowish)){
+                    return AjaxResult.fail(404,"禁止连线");
                 }
 
                 taskData.setRoomId(roomId);
-
+                taskData.setUid(sec_uid);
+                taskData.setUid(uid);
                 String xiguaName = xiguaAddress.getXiGuaName(roomId);
                 if (xiguaName == null || xiguaName.isEmpty() || xiguaName.isBlank()){
                     xiguaName = xiguaAddress.getXiGuaName(roomId);
