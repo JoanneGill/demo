@@ -77,4 +77,12 @@ public class AjaxResult implements Serializable {
         ajaxResult.setData(data);
         return ajaxResult;
     }
+
+    public static AjaxResult error(String msg){
+        AjaxResult ajaxResult = new AjaxResult();
+        ajaxResult.setCode(500);
+        ajaxResult.setMsg(msg);
+        ajaxResult.setData(null);
+        return ajaxResult;
+    }
 }
