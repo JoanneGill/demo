@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.Mapper.PpTaskMapper">
+
+    <select id="selectOneNotExecutedForUpdate" resultType="com.example.demo.Data.PpTask">
+        SELECT t.*
+        FROM pp_task t
+        WHERE t.totalNumber > t.compatedNumber + (
+            SELECT COUNT(*)
+            FROM pp_task_claim c
+            WHERE c.taskId = t.id
+              AND c.leaseExpireTime > NOW()
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM pp_task_claim c
+            WHERE c.taskId = t.id
+              AND c.deviceId = #{deviceId}
+        )
+        <if test="roomId != null and roomId != ''">
+            AND t.roomId = #{roomId}
+        </if>
+        ORDER BY t.id
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+    <update id="incrementCompatedNumberIfNotFull">
+        UPDATE pp_task
+        SET compatedNumber = compatedNumber + 1
+        WHERE id = #{id}
+          AND compatedNumber &lt; totalNumber
+    </update>
+
+</mapper>
