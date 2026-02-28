@@ -2,25 +2,14 @@ package com.example.demo.Data;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.math.BigInteger;
 
 @Data
 public class PpTaskClaim {
-
-    private Long id;
-
-    private Long taskId;
-
-    private String deviceId;
-
-    private String deviceNickName;
-
+    private BigInteger id;
+    private BigInteger taskId;
+    private String cardNo;
     private String status;
-
-    private Date claimTime;
-
-    private Date finishTime;
-
-    private Date leaseExpireTime;
-
+    private String claimTime;
+    private String finishTime;
 }

@@ -46,6 +46,12 @@
           "href": "integralManage.html",
           "icon": "fa fa-file-text",
           "target": "_self"
+        },
+        {
+          "title": "PP任务管理",
+          "href": "ppTaskManage.html",
+          "icon": "fa fa-tasks",
+          "target": "_self"
         }
 
       ]

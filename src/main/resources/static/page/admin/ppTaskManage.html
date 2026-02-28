@@ -1,0 +1,347 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">直播间ID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="roomId" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">主播名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="personName" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 新 增 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="batchDelete"> 批量删除 </button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="ppTaskTableId" lay-filter="ppTaskTableFilter"></table>
+
+        <script type="text/html" id="ppTaskTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">修改</a>
+            <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="claimList">领取记录</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+        </script>
+
+        <script type="text/html" id="statusTpl">
+            {{# if(d.status === 1){ }}
+            <span style="color:green">启用</span>
+            {{# } else { }}
+            <span style="color:red">停用</span>
+            {{# } }}
+        </script>
+    </div>
+</div>
+
+<script>
+    layui.use(['form', 'table', 'miniPage', 'element', 'laydate'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            miniPage = layui.miniPage,
+            laydate = layui.laydate;
+
+        // 主列表
+        table.render({
+            elem: '#ppTaskTableId',
+            url: '/admin/ppTask/list',
+            toolbar: '#toolbarDemo',
+            method: 'post',
+            contentType: 'application/json',
+            parseData: function (res) {
+                return {
+                    "code": res.code,
+                    "msg": res.msg,
+                    "count": res.data.total,
+                    "data": res.data.data
+                };
+            },
+            response: {
+                statusCode: 200
+            },
+            request: {
+                pageName: 'page',
+                limitName: 'size'
+            },
+            defaultToolbar: ['filter', 'exports', 'print'],
+            cols: [[
+                {type: "checkbox", width: 50},
+                {field: 'id', title: 'ID', width: 80, sort: true},
+                {field: 'roomId', title: '直播间ID', sort: true},
+                {field: 'personName', title: '主播名称'},
+                {field: 'title', title: '任务标题'},
+                {field: 'number', title: '总数量', width: 80},
+                {field: 'numberLeft', title: '剩余数量', width: 80},
+                {field: 'integral', title: '积分/分', width: 80, sort: true},
+                {field: 'status', title: '状态', width: 70, templet: '#statusTpl'},
+                {field: 'createTime', title: '创建时间'},
+                {field: 'expireTime', title: '过期时间'},
+                {title: '操作', minWidth: 220, toolbar: '#ppTaskTableBar', align: "center"}
+            ]],
+            limits: [10, 20, 50, 100],
+            limit: 20,
+            page: true,
+            skin: 'line'
+        });
+
+        // 搜索
+        form.on('submit(data-search-btn)', function (data) {
+            table.reload('ppTaskTableId', {
+                page: {curr: 1},
+                where: data.field
+            }, 'data');
+            return false;
+        });
+
+        // toolbar 事件
+        table.on('toolbar(ppTaskTableFilter)', function (obj) {
+            if (obj.event === 'add') {
+                openTaskForm(null);
+            } else if (obj.event === 'batchDelete') {
+                var checkStatus = table.checkStatus('ppTaskTableId');
+                var checkedData = checkStatus.data;
+                if (checkedData.length === 0) {
+                    layer.msg('请先选择要删除的记录', {icon: 2});
+                    return;
+                }
+                layer.confirm('确认批量删除选中记录？', {icon: 3}, function (index) {
+                    layer.close(index);
+                    var count = checkedData.length;
+                    var done = 0;
+                    checkedData.forEach(function (item) {
+                        $.ajax({
+                            url: '/admin/ppTask/delete',
+                            data: JSON.stringify({id: item.id}),
+                            type: 'post',
+                            dataType: 'json',
+                            headers: {'Content-Type': 'application/json;charset=utf-8'},
+                            success: function (res) {
+                                done++;
+                                if (done === count) {
+                                    layer.msg('批量删除成功', {icon: 1});
+                                    table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
+                                }
+                            }
+                        });
+                    });
+                });
+            }
+        });
+
+        // 行操作
+        table.on('tool(ppTaskTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                openTaskForm(data);
+            } else if (obj.event === 'delete') {
+                layer.confirm('确认删除该任务？', {icon: 3}, function (index) {
+                    layer.close(index);
+                    $.ajax({
+                        url: '/admin/ppTask/delete',
+                        data: JSON.stringify({id: data.id}),
+                        type: 'post',
+                        dataType: 'json',
+                        headers: {'Content-Type': 'application/json;charset=utf-8'},
+                        success: function (res) {
+                            if (res.code === 200) {
+                                layer.msg('删除成功', {icon: 1});
+                                table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
+                            } else {
+                                layer.msg(res.msg || '删除失败', {icon: 2});
+                            }
+                        },
+                        error: function () {
+                            layer.msg('删除失败', {icon: 2});
+                        }
+                    });
+                });
+            } else if (obj.event === 'claimList') {
+                openClaimList(data);
+            }
+            return false;
+        });
+
+        // 新增/修改弹窗
+        function openTaskForm(rowData) {
+            var isEdit = rowData !== null;
+            var title = isEdit ? '修改PP任务' : '新增PP任务';
+            layer.open({
+                type: 1,
+                title: title,
+                area: ['520px', 'auto'],
+                resize: false,
+                shadeClose: true,
+                content: '<div class="layui-form" lay-filter="ppTaskForm" style="margin:20px;">' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label">直播间ID</label>' +
+                    '<div class="layui-input-block"><input type="text" name="roomId" lay-verify="required" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.roomId || '') : '') + '"></div>' +
+                    '</div>' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label">主播名称</label>' +
+                    '<div class="layui-input-block"><input type="text" name="personName" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.personName || '') : '') + '"></div>' +
+                    '</div>' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label">任务标题</label>' +
+                    '<div class="layui-input-block"><input type="text" name="title" lay-verify="required" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.title || '') : '') + '"></div>' +
+                    '</div>' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label">任务数量</label>' +
+                    '<div class="layui-input-block"><input type="text" name="number" lay-verify="required|number" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.number || '') : '') + '"></div>' +
+                    '</div>' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label">积分/分</label>' +
+                    '<div class="layui-input-block"><input type="text" name="integral" lay-verify="required|number" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.integral || '') : '') + '"></div>' +
+                    '</div>' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label">过期时间</label>' +
+                    '<div class="layui-input-block"><input type="text" name="expireTime" id="ppTaskExpireTime" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.expireTime || '') : '') + '"></div>' +
+                    '</div>' +
+                    (isEdit ? '<input type="hidden" name="id" value="' + rowData.id + '">' : '') +
+                    (isEdit ? '<div class="layui-form-item"><label class="layui-form-label">状态</label>' +
+                        '<div class="layui-input-block"><select name="status" lay-verify="required">' +
+                        '<option value="1" ' + (rowData.status === 1 ? 'selected' : '') + '>启用</option>' +
+                        '<option value="0" ' + (rowData.status === 0 ? 'selected' : '') + '>停用</option>' +
+                        '</select></div></div>' : '') +
+                    '<div class="layui-form-item">' +
+                    '<div class="layui-input-block"><button class="layui-btn layui-btn-fluid" lay-submit lay-filter="ppTaskFormSubmit">确 定</button></div>' +
+                    '</div>' +
+                    '</div>',
+                success: function () {
+                    laydate.render({
+                        elem: '#ppTaskExpireTime',
+                        type: 'datetime',
+                        btns: ['confirm']
+                    });
+                    form.render();
+                    form.on('submit(ppTaskFormSubmit)', function (formData) {
+                        var field = formData.field;
+                        var url = isEdit ? '/admin/ppTask/update' : '/admin/ppTask/add';
+                        if (isEdit) {
+                            field.id = rowData.id;
+                        }
+                        $.ajax({
+                            url: url,
+                            data: JSON.stringify(field),
+                            type: 'post',
+                            dataType: 'json',
+                            headers: {'Content-Type': 'application/json;charset=utf-8'},
+                            success: function (res) {
+                                if (res.code === 200) {
+                                    layer.closeAll();
+                                    layer.msg(isEdit ? '修改成功' : '新增成功', {icon: 1});
+                                    table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
+                                } else {
+                                    layer.msg(res.msg || '操作失败', {icon: 2});
+                                }
+                            },
+                            error: function () {
+                                layer.msg('操作失败', {icon: 2});
+                            }
+                        });
+                        return false;
+                    });
+                }
+            });
+        }
+
+        // 领取记录弹窗
+        function openClaimList(taskRow) {
+            var claimTableId = 'claimTableId_' + taskRow.id;
+            layer.open({
+                type: 1,
+                title: '任务领取记录 - ' + (taskRow.title || taskRow.id),
+                area: ['900px', '550px'],
+                maxmin: true,
+                shadeClose: true,
+                content: '<div style="padding:10px;">' +
+                    '<table class="layui-hide" id="' + claimTableId + '" lay-filter="claimTableFilter_' + taskRow.id + '"></table>' +
+                    '</div>',
+                success: function () {
+                    table.render({
+                        elem: '#' + claimTableId,
+                        url: '/admin/ppTask/claimList?taskId=' + taskRow.id,
+                        parseData: function (res) {
+                            return {
+                                "code": res.code,
+                                "msg": res.msg,
+                                "count": res.data ? res.data.length : 0,
+                                "data": res.data || []
+                            };
+                        },
+                        response: {statusCode: 200},
+                        cols: [[
+                            {field: 'id', title: 'ID', width: 80},
+                            {field: 'cardNo', title: '账号'},
+                            {field: 'status', title: '状态', width: 100, templet: function (d) {
+                                var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
+                                var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
+                                var c = colorMap[d.status] || 'black';
+                                var l = labelMap[d.status] || d.status;
+                                return '<span style="color:' + c + '">' + l + '</span>';
+                            }},
+                            {field: 'claimTime', title: '领取时间'},
+                            {field: 'finishTime', title: '完成时间'},
+                            {title: '操作', width: 200, templet: function (d) {
+                                var btns = '';
+                                if (d.status === 'CLAIMED') {
+                                    btns += '<a class="layui-btn layui-btn-xs layui-btn-danger claim-action" data-id="' + d.id + '" data-status="FAILED">标记失败</a> ';
+                                    btns += '<a class="layui-btn layui-btn-xs layui-btn-normal claim-action" data-id="' + d.id + '" data-status="EXPIRED">标记过期</a>';
+                                }
+                                return btns || '-';
+                            }}
+                        ]],
+                        page: false,
+                        skin: 'line'
+                    });
+
+                    // 领取记录操作按钮事件（使用命名空间避免重复绑定）
+                    $(document).off('click.ppClaim').on('click.ppClaim', '.claim-action', function () {
+                        var $btn = $(this);
+                        var claimId = $btn.data('id');
+                        var newStatus = $btn.data('status');
+                        var label = newStatus === 'FAILED' ? '标记失败' : '标记过期';
+                        layer.confirm('确认' + label + '该领取记录？', {icon: 3}, function (idx) {
+                            layer.close(idx);
+                            $.ajax({
+                                url: '/admin/ppTask/claim/updateStatus',
+                                data: JSON.stringify({id: claimId, status: newStatus}),
+                                type: 'post',
+                                dataType: 'json',
+                                headers: {'Content-Type': 'application/json;charset=utf-8'},
+                                success: function (res) {
+                                    if (res.code === 200) {
+                                        layer.msg('操作成功', {icon: 1});
+                                        table.reload(claimTableId);
+                                    } else {
+                                        layer.msg(res.msg || '操作失败', {icon: 2});
+                                    }
+                                },
+                                error: function () {
+                                    layer.msg('操作失败', {icon: 2});
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+        }
+    });
+</script>
