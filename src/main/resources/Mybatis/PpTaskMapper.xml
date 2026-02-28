@@ -2,70 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.Mapper.PpTaskMapper">
 
-    <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask">
-        select * from pptask
-        <trim prefix="where" prefixOverrides="and | or">
-            <if test="pt.roomId != null and pt.roomId != ''">
-                and room_id = #{pt.roomId}
-            </if>
-            <if test="pt.personName != null and pt.personName != ''">
-                and person_name like concat('%', #{pt.personName}, '%')
-            </if>
-            <if test="pt.status != null">
-                and status = #{pt.status}
-            </if>
-        </trim>
-        order by id desc
-        <if test="pt.pageSize != null and pt.size != null">
-            limit #{pt.pageSize}, #{pt.size}
+    <select id="selectOneNotExecutedForUpdate" resultType="com.example.demo.Data.PpTask">
+        SELECT t.*
+        FROM pp_task t
+        WHERE t.totalNumber > t.compatedNumber + (
+            SELECT COUNT(*)
+            FROM pp_task_claim c
+            WHERE c.taskId = t.id
+              AND c.leaseExpireTime > NOW()
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM pp_task_claim c
+            WHERE c.taskId = t.id
+              AND c.deviceId = #{deviceId}
+        )
+        <if test="roomId != null and roomId != ''">
+            AND t.roomId = #{roomId}
         </if>
+        ORDER BY t.id
+        LIMIT 1
+        FOR UPDATE
     </select>
 
-    <select id="selectPpTaskListTotal" parameterType="com.example.demo.Data.PpTask">
-        select count(*) from pptask
-        <trim prefix="where" prefixOverrides="and | or">
-            <if test="pt.roomId != null and pt.roomId != ''">
-                and room_id = #{pt.roomId}
-            </if>
-            <if test="pt.personName != null and pt.personName != ''">
-                and person_name like concat('%', #{pt.personName}, '%')
-            </if>
-            <if test="pt.status != null">
-                and status = #{pt.status}
-            </if>
-        </trim>
-    </select>
-
-    <insert id="insertPpTask" parameterType="com.example.demo.Data.PpTask" useGeneratedKeys="true" keyProperty="pt.id">
-        insert into pptask (room_id, person_name, title, number, number_left, integral, status, create_time, expire_time)
-        values (#{pt.roomId}, #{pt.personName}, #{pt.title}, #{pt.number}, #{pt.number},
-                #{pt.integral}, 1, now(), #{pt.expireTime})
-    </insert>
-
-    <update id="updatePpTask" parameterType="com.example.demo.Data.PpTask">
-        update pptask
-        <set>
-            <if test="pt.roomId != null">room_id = #{pt.roomId},</if>
-            <if test="pt.personName != null">person_name = #{pt.personName},</if>
-            <if test="pt.title != null">title = #{pt.title},</if>
-            <if test="pt.number != null">number = #{pt.number},</if>
-            <if test="pt.integral != null">integral = #{pt.integral},</if>
-            <if test="pt.status != null">status = #{pt.status},</if>
-            <if test="pt.expireTime != null">expire_time = #{pt.expireTime},</if>
-        </set>
-        where id = #{pt.id}
-    </update>
-
-    <delete id="deletePpTask">
-        delete from pptask where id = #{id}
-    </delete>
-
-    <select id="selectPpTaskClaimList">
-        select * from pptask_claim where task_id = #{taskId} order by claim_time desc
-    </select>
-
-    <update id="updatePpTaskClaimStatus">
-        update pptask_claim set status = #{status} where id = #{id}
+    <update id="incrementCompatedNumberIfNotFull">
+        UPDATE pp_task
+        SET compatedNumber = compatedNumber + 1
+        WHERE id = #{id}
+          AND compatedNumber &lt; totalNumber
     </update>
 
 </mapper>
