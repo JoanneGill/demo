@@ -20,6 +20,12 @@ public class PpTaskClaim  {
     // 设备昵称
     private String deviceNickName;
 
+    // 领取时间
+    private Date claimTime;
+
+    // 完成时间
+    private Date finishTime;
+
     // 租约过期时间
     private Date leaseExpireTime;
 

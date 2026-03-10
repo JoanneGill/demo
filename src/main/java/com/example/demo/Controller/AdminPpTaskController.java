@@ -26,6 +26,11 @@ public class AdminPpTaskController {
     @Auth(user = "1000")
     @PostMapping("/list")
     public AjaxResult list(@RequestBody PpTask ppTask) {
+        int page = ppTask.getPage() != null && ppTask.getPage() > 0 ? ppTask.getPage() : 1;
+        int size = ppTask.getSize() != null && ppTask.getSize() > 0 ? ppTask.getSize() : 20;
+        ppTask.setPage(page);
+        ppTask.setSize(size);
+        ppTask.setPageOffset((page - 1) * size);
         List<PpTask> data = ppTaskMapper.selectPpTaskList(ppTask);
         Integer total = ppTaskMapper.selectPpTaskListTotal(ppTask);
         Pager<PpTask> pager = new Pager<>();

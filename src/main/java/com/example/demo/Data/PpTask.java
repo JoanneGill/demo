@@ -43,15 +43,33 @@ public class PpTask {
 
     // ========== 管理端需要的字段 ==========
 
+    // 任务标题
+    private String title;
 
-      // 状态     public static final String PP_TASK_CLAIM_STATUS_CLAIMED = "claimed";    // 任务中
-     //    public static final String PP_TASK_CLAIM_STATUS_SUCCESS = "success";   // 成功
-   //    public static final String PP_TASK_CLAIM_STATUS_FAILED = "fail";      // 失败
-     //    public static final String PP_TASK_CLAIM_STATUS_EXPIRED = "expired";  //超时
-    private String status;
+    // 总数量
+    private Integer number;
+
+    // 剩余数量
+    private Integer numberLeft;
+
+    // 状态 (1=启用, 0=停用)
+    private Integer status;
 
     // 创建时间
     private Date createTime;
 
+    // 过期时间
+    private Date expireTime;
+
+    // ========== 分页参数 ==========
+
+    // 当前页码
+    private Integer page;
+
+    // 每页记录数
+    private Integer size;
+
+    // 分页偏移量 (page-1)*size，由 Controller 计算后传入
+    private Integer pageOffset;
 
 }

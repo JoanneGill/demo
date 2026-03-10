@@ -19,7 +19,7 @@
          table has different columns (title, number, number_left, status, create_time, expire_time),
          so we use resultType with mapUnderscoreToCamelCase=true for auto-mapping here. -->
     <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask" resultType="com.example.demo.Data.PpTask">
-        select * from pp_task
+        select * from pptask
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
                 and room_id = #{pt.roomId}
@@ -32,13 +32,13 @@
             </if>
         </trim>
         order by id desc
-        <if test="pt.pageSize != null and pt.size != null">
-            limit #{pt.pageSize}, #{pt.size}
+        <if test="pt.pageOffset != null and pt.size != null">
+            limit #{pt.pageOffset}, #{pt.size}
         </if>
     </select>
 
     <select id="selectPpTaskListTotal" parameterType="com.example.demo.Data.PpTask" resultType="java.lang.Integer">
-        select count(*) from pp_task
+        select count(*) from pptask
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
                 and room_id = #{pt.roomId}
@@ -53,13 +53,13 @@
     </select>
 
     <insert id="insertPpTask" parameterType="com.example.demo.Data.PpTask" useGeneratedKeys="true" keyProperty="pt.id">
-        insert into pp_task (room_id, person_name, title, number, number_left, integral, status, create_time, expire_time)
+        insert into pptask (room_id, person_name, title, number, number_left, integral, status, create_time, expire_time)
         values (#{pt.roomId}, #{pt.personName}, #{pt.title}, #{pt.number}, #{pt.number},
                 #{pt.integral}, 1, now(), #{pt.expireTime})
     </insert>
 
     <update id="updatePpTask" parameterType="com.example.demo.Data.PpTask">
-        update pp_task
+        update pptask
         <set>
             <if test="pt.roomId != null">room_id = #{pt.roomId},</if>
             <if test="pt.personName != null">person_name = #{pt.personName},</if>
@@ -73,7 +73,7 @@
     </update>
 
     <delete id="deletePpTask">
-        delete from pp_task where id = #{id}
+        delete from pptask where id = #{id}
     </delete>
 
     <sql id="cols">

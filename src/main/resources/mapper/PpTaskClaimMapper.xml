@@ -8,6 +8,8 @@
         <result column="device_id"         property="deviceId"/>
         <result column="device_nick_name"  property="deviceNickName"/>
         <result column="lease_expire_time" property="leaseExpireTime"/>
+        <result column="claim_time"        property="claimTime"/>
+        <result column="finish_time"       property="finishTime"/>
         <result column="status"            property="status"/>
         <result column="msg"               property="msg"/>
         <result column="video_name"        property="videoName"/>
@@ -76,11 +78,11 @@
     </update>
 
     <update id="updatePpTaskClaimStatus">
-        update pp_task_claim set status = #{status} where id = #{id}
+        update pptask_claim set status = #{status} where id = #{id}
     </update>
 
     <select id="selectPpTaskClaimList" resultMap="PpTaskClaimResultMap">
-        select * from pp_task_claim where task_id = #{taskId} order by begin_time desc
+        select * from pptask_claim where task_id = #{taskId} order by claim_time desc
     </select>
 
     <update id="markFinished" parameterType="java.math.BigInteger">
