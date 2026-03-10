@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.Mapper.PpTaskMapper">
-
-
     <resultMap id="PpTaskResultMap" type="com.example.demo.Data.PpTask">
         <id     column="id"               property="id"/>
-
         <result column="room_address"     property="roomAddress"/>
         <result column="room_id"          property="roomId"/>
-
         <result column="total_number"     property="totalNumber"/>
         <result column="completed_number" property="completedNumber"/>
         <result column="received_number"  property="receivedNumber"/>
-
         <result column="person_address"   property="personAddress"/>
         <result column="person_name"      property="personName"/>
-
         <result column="integral"         property="integral"/>
-
         <result column="begin_time"       property="beginTime"/>
         <result column="completed_time"   property="completedTime"/>
     </resultMap>
@@ -94,20 +87,37 @@
         id, room_address, room_id, total_number, computed_number, person_address, person_name
     </sql>
 
-    <update id="updateCompletedTaskNumber" parameterType="long">
+    <update id="updateCompletedTaskNumber" parameterType="java.math.BigInteger">
         update pp_task
         set
         completed_number = completed_number + 1,
         received_number = received_number - 1,
         status = CASE WHEN completed_number + 1 = total_number THEN 'DONE' ELSE status END
-        where id = #{taskId} and completed_number &lt; total_number and received_number &gt; 0
+        where id = #{id} and completed_number &lt; total_number and received_number &gt;= 0
     </update>
-    <update id="updateFailedTaskNumber" parameterType="long">
+
+    <update id="updateFailedTaskNumber" parameterType="java.math.BigInteger">
         update pp_task
         set
         received_number = received_number - 1
         where id = #{taskId}  and received_number &gt; 0
     </update>
+
+    <select id="selectOneNotExecutedForUpdate"
+            parameterType="string"
+            resultMap="PpTaskResultMap">
+        select t.*
+        from pp_task t
+        where not exists (
+            select 1
+            from pp_task_claim c
+            where c.room_id = t.room_id
+              and c.device_id = #{deviceId}
+        )
+        order by t.begin_time asc
+            limit 1
+        for update
+    </select>
 
 
 

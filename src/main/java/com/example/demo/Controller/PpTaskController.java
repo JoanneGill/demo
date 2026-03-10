@@ -6,6 +6,8 @@ import com.example.demo.Service.PpTaskDispatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
+
 @RestController
 @RequestMapping("/ppTask")
 public class PpTaskController {
@@ -25,8 +27,8 @@ public class PpTaskController {
         }
     }
 
-    @PostMapping("/finish")
-    public AjaxResult finish(@RequestParam Long claimId,
+    @GetMapping("/finish")
+    public AjaxResult finish(@RequestParam BigInteger claimId,
                              @RequestParam String deviceId,
                              @RequestParam Boolean success,
                              @RequestParam(required = false) String msg) {

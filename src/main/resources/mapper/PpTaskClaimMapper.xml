@@ -54,40 +54,33 @@
     </insert>
 
     <select id="selectByIdForUpdate" resultMap="PpTaskClaimResultMap">
-        SELECT * FROM pptask_claim WHERE id = #{id} FOR UPDATE
+        SELECT * FROM pp_task_claim WHERE id = #{id} FOR UPDATE
     </select>
 
-    <update id="markFinished">
-        UPDATE pptask_claim
-        SET status = 'FINISHED', finish_time = NOW()
-        WHERE id = #{id}
-          AND status = 'CLAIMED'
-    </update>
 
     <update id="markFailed">
         <bind name="FAILED" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_FAILED"/>
-        UPDATE pptask_claim
+        UPDATE pp_task_claim
         SET status = '${FAILED}', finish_time = NOW() ,msg = #{msg}
         WHERE id = #{id}
           AND status != '${FAILED}'
     </update>
 
     <update id="expireOverdue">
-        UPDATE pptask_claim
+        UPDATE pp_task_claim
         SET status = 'EXPIRED'
         WHERE status = 'CLAIMED'
           AND lease_expire_time &lt;= NOW()
     </update>
 
 
-    <update id="markFinished" parameterType="map">
+    <update id="markFinished" parameterType="java.math.BigInteger">
         <bind name="SUCCESS" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_SUCCESS"/>
         update pp_task_claim
         set
         status = '${SUCCESS}',
-        msg = #{msg},
         completed_time = now()
-        where id = #{claimId}
+        where id = #{id}
         and status != '${SUCCESS}'
     </update>
 

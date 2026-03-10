@@ -13,11 +13,11 @@ public interface PpTaskClaimMapper {
 
     int insert(PpTaskClaim claim);
 
-    PpTaskClaim selectByIdForUpdate(@Param("id") Long id);
+    PpTaskClaim selectByIdForUpdate(@Param("id") BigInteger id);
 
-    int markFinished(@Param("id") Long id);
+    int markFinished(@Param("id") BigInteger id);
 
-    int markFailed(@Param("id") Long id,@Param("msg") String msg);
+    int markFailed(@Param("id") BigInteger id,@Param("msg") String msg);
 
     List<PpTaskClaim> selectOverdueClaimedForUpdate(@Param("limit") int limit, @Param("now") Date now);
 

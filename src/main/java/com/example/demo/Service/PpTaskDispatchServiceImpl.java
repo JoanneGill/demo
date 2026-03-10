@@ -11,6 +11,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -59,30 +60,30 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
     @Override
     @Transactional
-    public void finishSuccess(Long claimId, String deviceId) {
+    public void finishSuccess(BigInteger claimId, String deviceId) {
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
-        if (claim == null) {
-            throw new IllegalArgumentException("Claim not found: " + claimId);
-        }
-        if (!deviceId.equals(claim.getDeviceId())) {
-            throw new IllegalArgumentException("Device mismatch for claim " + claimId);
-        }
-        if (PP_TASK_CLAIM_STATUS_SUCCESS.equals(claim.getStatus())) {
-            return;
-        }
-        int updated = ppTaskMapper.updateCompletedTaskNumber(claim.getTaskId());
-        if (updated == 0) {
-            throw new IllegalStateException("Task already full, cannot increment compated_number for task " + claim.getTaskId());
-        }
-        int marked = ppTaskClaimMapper.markFinished(claimId);
-        if (marked == 0) {
-            throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
-        }
+            if (claim == null) {
+                throw new IllegalArgumentException("Claim not found: " + claimId);
+            }
+            if (!deviceId.equals(claim.getDeviceId())) {
+                throw new IllegalArgumentException("Device mismatch for claim " + claimId);
+            }
+            if (PP_TASK_CLAIM_STATUS_SUCCESS.equals(claim.getStatus())) {
+                return;
+            }
+            int updated = ppTaskMapper.updateCompletedTaskNumber(claim.getTaskId());
+            if (updated == 0) {
+                throw new IllegalStateException("Task already full, cannot increment compated_number for task " + claim.getTaskId());
+            }
+            int marked = ppTaskClaimMapper.markFinished(claimId);
+            if (marked == 0) {
+                throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
+            }
     }
 
     @Override
     @Transactional
-    public void finishFail(Long claimId, String deviceId,String msg) {
+    public void finishFail(BigInteger claimId, String deviceId,String msg) {
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
         if (claim == null) {
             throw new IllegalArgumentException("Claim not found: " + claimId);
