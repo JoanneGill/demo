@@ -8,6 +8,8 @@
         <result column="device_id"         property="deviceId"/>
         <result column="device_nick_name"  property="deviceNickName"/>
         <result column="lease_expire_time" property="leaseExpireTime"/>
+        <result column="claim_time"        property="claimTime"/>
+        <result column="finish_time"       property="finishTime"/>
         <result column="status"            property="status"/>
         <result column="msg"               property="msg"/>
         <result column="video_name"        property="videoName"/>
@@ -58,12 +60,14 @@
     </select>
 
 
-    <update id="markFailed">
-        <bind name="FAILED" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_FAILED"/>
-        UPDATE pp_task_claim
-        SET status = '${FAILED}', finish_time = NOW() ,msg = #{msg}
-        WHERE id = #{id}
-          AND status != '${FAILED}'
+    <update id="markFailed" >
+        <bind name="FAILED" value="@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_FAILED"/>
+        update pp_task_claim
+        set status = '${FAILED}',
+        completed_time = now(),
+        msg = #{msg}
+        where id = #{id}
+        and status != '${FAILED}'
     </update>
 
     <update id="expireOverdue">
@@ -73,9 +77,16 @@
           AND lease_expire_time &lt;= NOW()
     </update>
 
+    <update id="updatePpTaskClaimStatus">
+        update pptask_claim set status = #{status} where id = #{id}
+    </update>
+
+    <select id="selectPpTaskClaimList" resultMap="PpTaskClaimResultMap">
+        select * from pptask_claim where task_id = #{taskId} order by claim_time desc
+    </select>
 
     <update id="markFinished" parameterType="java.math.BigInteger">
-        <bind name="SUCCESS" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_SUCCESS"/>
+        <bind name="SUCCESS" value="@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_SUCCESS"/>
         update pp_task_claim
         set
         status = '${SUCCESS}',
