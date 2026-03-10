@@ -1,5 +1,6 @@
 package com.example.demo.Service;
 
+import cn.hutool.core.date.DateUtil;
 import com.example.demo.Address.XiguaAddress;
 import com.example.demo.Data.PpTask;
 import com.example.demo.Data.PpTaskClaim;
@@ -48,13 +49,13 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         claim.setRoomId(task.getRoomId());
         claim.setPersonAddress(task.getPersonAddress());
         claim.setIntegral(task.getIntegral());
-        claim.setBeginTime(new Date());
+        claim.setBeginTime(DateUtil.now());
         claim.setPpTask(task.toString());
         claim.setVideoName(task.getPersonName());
         claim.setDeviceId(deviceId);
         claim.setDeviceNickName(deviceNickName);
         long expireMs = System.currentTimeMillis() + (long) leaseMinutes * 60 * 1000;
-        claim.setLeaseExpireTime(new Date(expireMs));
+        claim.setLeaseExpireTime(DateUtil.date(expireMs).toString());
         try {
             ppTaskClaimMapper.insert(claim);
             ppTaskMapper.updateReceivedTaskNumber(task.getId());
@@ -210,7 +211,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         ppTask.setRoomId(roomId);
         ppTask.setPersonName(personName);
         ppTask.setStatus(PP_TASK_CLAIM_STATUS_CLAIMED);
-        ppTask.setBeginTime(new Date());
+        ppTask.setBeginTime(DateUtil.now());
         int rows = ppTaskMapper.insertPpTask(ppTask);
         if (rows <= 0) {
             throw new RuntimeException("新增 ppTask 失败");

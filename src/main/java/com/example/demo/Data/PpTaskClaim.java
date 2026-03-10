@@ -21,7 +21,7 @@ public class PpTaskClaim  {
     private String deviceNickName;
 
     // 租约过期时间
-    private Date leaseExpireTime;
+    private String leaseExpireTime;
 
     // 状态     public static final String PP_TASK_CLAIM_STATUS_CLAIMED = "claimed";    // 任务中
     //    public static final String PP_TASK_CLAIM_STATUS_SUCCESS = "success";   // 成功
@@ -45,10 +45,10 @@ public class PpTaskClaim  {
     private Integer integral;
 
     // 开始时间
-    private Date beginTime;
+    private String beginTime;
 
     // 完成时间
-    private Date completedTime;
+    private String completedTime;
 
     // 全部信息toString
     private String ppTask;

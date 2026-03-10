@@ -53,11 +53,11 @@
     </select>
 
     <insert id="insertPpTask" parameterType="com.example.demo.Data.PpTask" useGeneratedKeys="true" keyProperty="pt.id">
-        insert into pp_task (room_id, person_name, total_number, integral, status, create_time, begin_time)
-        values (#{pt.roomId}, #{pt.personName}, #{pt.totalNumber},
-                #{pt.integral}, #{pt.status}, now(), #{pt.beginTime})
+        insert into pp_task (room_id, person_name, person_address, total_number,
+                             completed_number, received_number, integral, status, begin_time,created_time)
+        values (#{pt.roomId}, #{pt.personName}, #{pt.personAddress}, #{pt.totalNumber},
+                0, 0, #{pt.integral}, #{pt.status}, #{pt.beginTime}, now())
     </insert>
-
     <update id="updatePpTask" parameterType="com.example.demo.Data.PpTask">
         update pp_task
         <set>

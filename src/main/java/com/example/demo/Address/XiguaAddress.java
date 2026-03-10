@@ -109,10 +109,8 @@ public class XiguaAddress {
 
     private ChromeDriver createChromeDriver() {
         log.info("开始初始化 ChromeDriver (headless={}, enabled={})", headless, browserEnabled);
-        Path profileTempDir = null;
-        Path cacheTempDir = null;
-        System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
         try {
+            System.setProperty("webdriver.chrome.driver", "C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
             ChromeOptions options = new ChromeOptions();
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
             if (headless) {

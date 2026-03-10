@@ -36,10 +36,10 @@ public class PpTask {
     private Integer integral;
 
     // 开始时间
-    private Date beginTime;
+    private String beginTime;
 
     // 完成时间
-    private Date completedTime;
+    private String completedTime;
 
     // ========== 管理端需要的字段 ==========
 
@@ -51,7 +51,7 @@ public class PpTask {
     private String status;
 
     // 创建时间
-    private Date createTime;
+    private String createTime;
 
     // 分页参数
     private Integer page;
