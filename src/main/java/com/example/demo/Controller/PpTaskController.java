@@ -16,33 +16,30 @@ public class PpTaskController {
     @GetMapping("/claim")
     public AjaxResult claim(@RequestParam String deviceId,
                             @RequestParam(required = false) String deviceNickName,
-                            @RequestParam(required = false) String roomId) {
+                            @RequestParam(required = false) String cardNo) {
         try {
-            PpTaskClaim claim = ppTaskDispatchService.claimOne(roomId, deviceId, deviceNickName);
+            PpTaskClaim claim = ppTaskDispatchService.claimOne(deviceId,deviceNickName,cardNo);
             return AjaxResult.success(claim);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }
     }
 
-    @PostMapping("/finishSuccess")
-    public AjaxResult finishSuccess(@RequestParam Long claimId,
-                                    @RequestParam String deviceId) {
+    @PostMapping("/finish")
+    public AjaxResult finish(@RequestParam Long claimId,
+                             @RequestParam String deviceId,
+                             @RequestParam Boolean success,
+                             @RequestParam(required = false) String msg) {
         try {
-            ppTaskDispatchService.finishSuccess(claimId, deviceId);
-            return AjaxResult.success(null);
+            if (Boolean.TRUE.equals(success)) {
+                ppTaskDispatchService.finishSuccess(claimId, deviceId);
+                return AjaxResult.success("FINISH_SUCCESS");
+            } else {
+                ppTaskDispatchService.finishFail(claimId, deviceId,msg);
+                return AjaxResult.success("FINISH_FAIL");
+            }
         } catch (Exception e) {
-            return AjaxResult.error(e.getMessage());
-        }
-    }
-
-    @PostMapping("/finishFail")
-    public AjaxResult finishFail(@RequestParam Long claimId,
-                                 @RequestParam String deviceId) {
-        try {
-            ppTaskDispatchService.finishFail(claimId, deviceId);
-            return AjaxResult.success(null);
-        } catch (Exception e) {
+            // 失败时返回错误信息（你也可以把msg一起返回）
             return AjaxResult.error(e.getMessage());
         }
     }

@@ -4,11 +4,11 @@ import com.example.demo.Data.PpTaskClaim;
 
 public interface PpTaskDispatchService {
 
-    PpTaskClaim claimOne(String roomId, String deviceId, String deviceNickName);
+    PpTaskClaim claimOne(String deviceId,String deviceNickName , String cardNo);
 
     void finishSuccess(Long claimId, String deviceId);
 
-    void finishFail(Long claimId, String deviceId);
+    void finishFail(Long claimId, String deviceId,String msg);
 
     void expireOverdueClaims();
 

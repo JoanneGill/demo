@@ -2,23 +2,58 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.Mapper.PpTaskClaimMapper">
 
-    <resultMap id="claimMap" type="com.example.demo.Data.PpTaskClaim">
-        <id     property="id"             column="id"/>
-        <result property="taskId"         column="task_id"/>
-        <result property="deviceId"       column="device_id"/>
-        <result property="deviceNickName" column="device_nick_name"/>
-        <result property="status"         column="status"/>
-        <result property="claimTime"      column="claim_time"/>
-        <result property="finishTime"     column="finish_time"/>
-        <result property="leaseExpireTime" column="lease_expire_time"/>
+    <resultMap id="PpTaskClaimResultMap" type="com.example.demo.Data.PpTaskClaim">
+        <id     column="id"                property="id"/>
+        <result column="task_id"           property="taskId"/>
+        <result column="device_id"         property="deviceId"/>
+        <result column="device_nick_name"  property="deviceNickName"/>
+        <result column="lease_expire_time" property="leaseExpireTime"/>
+        <result column="status"            property="status"/>
+        <result column="msg"               property="msg"/>
+        <result column="video_name"        property="videoName"/>
+        <result column="room_id"           property="roomId"/>
+        <result column="person_address"    property="personAddress"/>
+        <result column="integral"          property="integral"/>
+        <result column="begin_time"        property="beginTime"/>
+        <result column="completed_time"    property="completedTime"/>
     </resultMap>
 
-    <insert id="insert" parameterType="com.example.demo.Data.PpTaskClaim" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO pptask_claim (task_id, device_id, device_nick_name, status, claim_time, lease_expire_time)
-        VALUES (#{taskId}, #{deviceId}, #{deviceNickName}, #{status}, NOW(), #{leaseExpireTime})
+    <insert id="insert"
+            parameterType="com.example.demo.Data.PpTaskClaim"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into pp_task_claim
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">task_id,</if>
+            <if test="deviceId != null and deviceId != ''">device_id,</if>
+            <if test="deviceNickName != null and deviceNickName != ''">device_nick_name,</if>
+            <if test="leaseExpireTime != null">lease_expire_time,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="msg != null and msg != ''">msg,</if>
+            <if test="videoName != null and videoName != ''">video_name,</if>
+            <if test="roomId != null and roomId != ''">room_id,</if>
+            <if test="personAddress != null and personAddress != ''">person_address,</if>
+            <if test="integral != null">integral,</if>
+            <if test="beginTime != null">begin_time,</if>
+            <if test="completedTime != null">completed_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskId != null">#{taskId},</if>
+            <if test="deviceId != null and deviceId != ''">#{deviceId},</if>
+            <if test="deviceNickName != null and deviceNickName != ''">#{deviceNickName},</if>
+            <if test="leaseExpireTime != null">#{leaseExpireTime},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="msg != null and msg != ''">#{msg},</if>
+            <if test="videoName != null and videoName != ''">#{videoName},</if>
+            <if test="roomId != null and roomId != ''">#{roomId},</if>
+            <if test="personAddress != null and personAddress != ''">#{personAddress},</if>
+            <if test="integral != null">#{integral},</if>
+            <if test="beginTime != null">#{beginTime},</if>
+            <if test="completedTime != null">#{completedTime},</if>
+        </trim>
     </insert>
 
-    <select id="selectByIdForUpdate" resultMap="claimMap">
+    <select id="selectByIdForUpdate" resultMap="PpTaskClaimResultMap">
         SELECT * FROM pptask_claim WHERE id = #{id} FOR UPDATE
     </select>
 
@@ -30,10 +65,11 @@
     </update>
 
     <update id="markFailed">
+        <bind name="FAILED" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_FAILED"/>
         UPDATE pptask_claim
-        SET status = 'FAILED', finish_time = NOW()
+        SET status = '${FAILED}', finish_time = NOW() ,msg = #{msg}
         WHERE id = #{id}
-          AND status = 'CLAIMED'
+          AND status != '${FAILED}'
     </update>
 
     <update id="expireOverdue">
@@ -41,6 +77,42 @@
         SET status = 'EXPIRED'
         WHERE status = 'CLAIMED'
           AND lease_expire_time &lt;= NOW()
+    </update>
+
+
+    <update id="markFinished" parameterType="map">
+        <bind name="SUCCESS" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_SUCCESS"/>
+        update pp_task_claim
+        set
+        status = '${SUCCESS}',
+        msg = #{msg},
+        completed_time = now()
+        where id = #{claimId}
+        and status != '${SUCCESS}'
+    </update>
+
+    <select id="selectOverdueClaimedForUpdate" resultMap="PpTaskClaimResultMap">
+        select
+            id, task_id, device_id, device_nick_name, lease_expire_time,
+            status, msg, video_name, room_id, person_address, integral,
+            begin_time, completed_time
+        from pp_task_claim
+        where lease_expire_time &lt; #{now}
+          and status = '${@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_CLAIMED}'
+        order by lease_expire_time asc
+            limit #{limit}
+            for update
+    </select>
+
+    <!-- 标记过期：幂等保护 where status=CLAIMED -->
+    <update id="markExpired">
+        update pp_task_claim
+        set
+            status = '${@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_EXPIRED}',
+            msg = #{msg},
+            completed_time = now()
+        where id = #{claimId}
+          and status = '${@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_CLAIMED}'
     </update>
 
 </mapper>

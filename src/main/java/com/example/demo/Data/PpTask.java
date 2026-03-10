@@ -16,18 +16,18 @@ public class PpTask {
 
     private Integer totalNumber;
 
-    private Integer compatedNumber;
+    private Integer completedNumber;
+
+    private Integer receivedNumber;
 
     private String personAddress;
 
     private String personName;
 
-    private String videoName;
-
     private Integer integral;
 
     private Date beginTime;
 
-    private Date dieTime;
+    private Date completedTime;
 
 }

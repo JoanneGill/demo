@@ -9,8 +9,10 @@ import java.math.BigInteger;
 @Mapper
 public interface PpTaskMapper {
 
-    PpTask selectOneNotExecutedForUpdate(@Param("roomId") String roomId, @Param("deviceId") String deviceId);
+    PpTask selectOneNotExecutedForUpdate( @Param("deviceId") String deviceId);
 
-    int incrementCompatedNumberIfNotFull(@Param("id") BigInteger id);
+    int updateCompletedTaskNumber(@Param("id") BigInteger id);
+
+    int updateFailedTaskNumber(@Param("id") BigInteger id);
 
 }

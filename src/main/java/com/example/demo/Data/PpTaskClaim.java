@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.Date;
 
 @Data
-public class PpTaskClaim {
+public class PpTaskClaim  {
 
     private BigInteger id;
 
@@ -17,5 +17,23 @@ public class PpTaskClaim {
     private String deviceNickName;
 
     private Date leaseExpireTime;
+
+    private String status;
+
+    private String msg;
+
+    private String videoName;
+
+    private String roomId;
+
+    private String personAddress;
+
+    private Integer integral;
+
+    private Date beginTime;
+
+    private Date completedTime;
+
+    private String ppTask; // 全部信息toString
 
 }
