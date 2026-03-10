@@ -33,7 +33,8 @@ public class MyConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/litemall/setTask")
                 .excludePathPatterns("/Task/screenUpload")
                 .excludePathPatterns("/litemall/checkTask")
-                .excludePathPatterns("/ppTask/**");
+                .excludePathPatterns("/ppTask/**")
+                .excludePathPatterns("/admin/ppTask/**");
 
     }
 }
