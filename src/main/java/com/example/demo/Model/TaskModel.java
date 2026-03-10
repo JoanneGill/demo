@@ -185,60 +185,8 @@ List<DeviceData> deviceDataListGlobal = GlobalVariablesSingleton.getInstance().g
      * 执行任务分配总方法
      */
     public Boolean setTask(TaskData taskData){
-
-//        Long timeNow =System.currentTimeMillis();
-//        //初始化 当缓存用户列表为0
-//        if (userListGlobal.size()== 0){
-//            taskDataListGlobal.add(taskData);
-//            return  true;
-//        }
-//        //开始执行分配任务表
-//        //统计当前所有用户空闲设备数量
-//        Long now = System.currentTimeMillis();
-//        Integer allWaitDevices = 0;
-//        for (int i = 0; i < userListGlobal.size(); i++) {
-//            userListGlobal.get(i).setWaitDevices(0); // 清除缓存
-//            for (int j = 0; j < deviceDataListGlobal.size(); j++) {
-//                if (now <deviceDataListGlobal.get(j).getState()+40*1000&& (StrUtil.isEmptyIfStr(deviceDataListGlobal.get(j).getId()) || "0".equals(deviceDataListGlobal.get(j).getId()) )){ //在线且空闲
-//                    allWaitDevices++;
-//                    userListGlobal.get(i).setWaitDevices(userListGlobal.get(i).getWaitDevices()+1);
-//                }
-//            }
-//        }
-//
-//        //如果当前空闲设备小于任务总量  直接加进先到先得任务列表
-//        if (allWaitDevices+50<taskData.getNumber()){
-//            taskDataListGlobal.add(taskData);
-//            return  true;
-//        }
-//
-//        //如果当前总空闲设备大于任务总数+50
-//        for (int i = 0; i < userListGlobal.size(); i++) {
-//
-//            if (userListGlobal.get(i).getWaitDevices().equals(0)){
-//                continue;
-//            }
-//            //计算用户分配任务数 用户空闲设备占总空闲设备
-//            Integer tasks = (userListGlobal.get(i).getWaitDevices()/allWaitDevices)*taskData.getNumber();
-//
-//            taskData.setNumber(taskData.getNumber()-tasks);
-//            for (int j = 0; j < deviceDataListGlobal.size(); j++) {
-//                if (now <deviceDataListGlobal.get(j).getState()+45*1000&& StrUtil.isEmptyIfStr(deviceDataListGlobal.get(j).getId())&&tasks>0){ //在线且空闲
-//                    deviceDataListGlobal.get(j).setRoomId(taskData.roomId);
-//                    deviceDataListGlobal.get(j).setId(taskData.id);
-//                    deviceDataListGlobal.get(j).setHaveWorkTime(timeNow);
-//                    deviceDataListGlobal.get(j).setTodayTaskNumber(deviceDataListGlobal.get(j).getTodayTaskNumber()+1);
-//                    tasks--;
-//                }
-//            }
-//
-//            taskData.setNumber(taskData.getNumber()+tasks);
-//        }
-
         taskDataListGlobal.add(taskData);
-
         return true;
-
     }
 
 

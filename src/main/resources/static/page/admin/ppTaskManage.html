@@ -84,16 +84,15 @@
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
                 {type: "checkbox", width: 50},
-                {field: 'id', title: 'ID', width: 80, sort: true},
-                {field: 'roomId', title: '直播间ID', sort: true},
+                {field: 'id', title: 'ID', width: 80},
+                {field: 'roomId', title: '直播间ID'},
                 {field: 'personName', title: '主播名称'},
-                {field: 'title', title: '任务标题'},
                 {field: 'number', title: '总数量', width: 80},
                 {field: 'numberLeft', title: '剩余数量', width: 80},
                 {field: 'integral', title: '积分/分', width: 80, sort: true},
                 {field: 'status', title: '状态', width: 70, templet: '#statusTpl'},
-                {field: 'createTime', title: '创建时间'},
-                {field: 'expireTime', title: '过期时间'},
+                {field: 'createTime', title: '创建时间',sort: true},
+                {field: 'expireTime', title: '过期时间',sort: true},
                 {title: '操作', minWidth: 220, toolbar: '#ppTaskTableBar', align: "center"}
             ]],
             limits: [10, 20, 50, 100],
@@ -268,7 +267,7 @@
             layer.open({
                 type: 1,
                 title: '任务领取记录 - ' + (taskRow.title || taskRow.id),
-                area: ['900px', '550px'],
+                area: ['1400px', '850px'],
                 maxmin: true,
                 shadeClose: true,
                 content: '<div style="padding:10px;">' +
@@ -298,8 +297,8 @@
                                 var l = labelMap[d.status] || d.status;
                                 return '<span style="color:' + c + '">' + l + '</span>';
                             }},
-                            {field: 'claimTime', title: '领取时间'},
-                            {field: 'finishTime', title: '完成时间'},
+                            {field: 'beginTime', title: '开始时间'},
+                            {field: 'completedTime', title: '完成时间'},
                             {title: '操作', width: 200, templet: function (d) {
                                 var btns = '';
                                 if (d.status === 'CLAIMED') {

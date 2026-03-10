@@ -7,6 +7,7 @@ import com.example.demo.Data.PpTask;
 import com.example.demo.Data.PpTaskClaim;
 import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskMapper;
+import com.example.demo.Service.PpTaskDispatchServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,10 @@ public class AdminPpTaskController {
     PpTaskMapper ppTaskMapper;
     @Autowired
     PpTaskClaimMapper ppTaskClaimMapper;
+
+    @Autowired
+    private PpTaskDispatchServiceImpl ppTaskDispatchServiceImpl;
+
     @Auth(user = "1000")
     @PostMapping("/list")
     public AjaxResult list(@RequestBody PpTask ppTask) {
@@ -34,14 +39,24 @@ public class AdminPpTaskController {
         return AjaxResult.success(pager);
     }
 
-    @Auth(user = "1000")
+    /**
+     * 新增 ppTask 任务
+     * POST /admin/ppTask/add
+     * Body: { "personAddress": "xxx", "number": 10, "integral": 5, "title": "xxx", "expireTime": "2026-03-11 00:00:00" }
+     */
+
     @PostMapping("/add")
     public AjaxResult add(@RequestBody PpTask ppTask) {
-        int rows = ppTaskMapper.insertPpTask(ppTask);
-        if (rows > 0) {
-            return AjaxResult.success("新增成功", ppTask);
+        try {
+            PpTask result = ppTaskDispatchServiceImpl.addPpTask(ppTask);
+            return AjaxResult.success("新增成功", result);
+        } catch (IllegalArgumentException e) {
+            log.warn("新增 ppTask 参数错误: {}", e.getMessage());
+            return AjaxResult.fail(-1, e.getMessage());
+        } catch (Exception e) {
+            log.error("新增 ppTask 异常:", e);
+            return AjaxResult.fail(500, "系统异常，请稍后重试");
         }
-        return AjaxResult.fail(-1, "新增失败");
     }
 
     @Auth(user = "1000")

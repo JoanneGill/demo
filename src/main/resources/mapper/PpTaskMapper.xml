@@ -18,7 +18,7 @@
     <!-- Note: PpTaskResultMap above is for the pp_task (robot-flow) table. The admin pptask
          table has different columns (title, number, number_left, status, create_time, expire_time),
          so we use resultType with mapUnderscoreToCamelCase=true for auto-mapping here. -->
-    <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask" resultType="com.example.demo.Data.PpTask">
+    <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask" resultMap="PpTaskResultMap">
         select * from pp_task
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
@@ -53,9 +53,9 @@
     </select>
 
     <insert id="insertPpTask" parameterType="com.example.demo.Data.PpTask" useGeneratedKeys="true" keyProperty="pt.id">
-        insert into pp_task (room_id, person_name, title, number, number_left, integral, status, create_time, expire_time)
-        values (#{pt.roomId}, #{pt.personName}, #{pt.title}, #{pt.number}, #{pt.number},
-                #{pt.integral}, 1, now(), #{pt.expireTime})
+        insert into pp_task (room_id, person_name, total_number, integral, status, create_time, begin_time)
+        values (#{pt.roomId}, #{pt.personName}, #{pt.totalNumber},
+                #{pt.integral}, #{pt.status}, now(), #{pt.beginTime})
     </insert>
 
     <update id="updatePpTask" parameterType="com.example.demo.Data.PpTask">
@@ -63,11 +63,10 @@
         <set>
             <if test="pt.roomId != null">room_id = #{pt.roomId},</if>
             <if test="pt.personName != null">person_name = #{pt.personName},</if>
-            <if test="pt.title != null">title = #{pt.title},</if>
-            <if test="pt.number != null">number = #{pt.number},</if>
+            <if test="pt.number != null">number = #{pt.totalNumber},</if>
             <if test="pt.integral != null">integral = #{pt.integral},</if>
             <if test="pt.status != null">status = #{pt.status},</if>
-            <if test="pt.expireTime != null">expire_time = #{pt.expireTime},</if>
+            <if test="pt.beginTime != null">expire_time = #{pt.beginTime},</if>
         </set>
         where id = #{pt.id}
     </update>

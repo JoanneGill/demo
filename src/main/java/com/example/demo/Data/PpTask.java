@@ -53,5 +53,10 @@ public class PpTask {
     // 创建时间
     private Date createTime;
 
+    // 分页参数
+    private Integer page;
 
+    private Integer size;
+
+    private Integer pageSize;
 }

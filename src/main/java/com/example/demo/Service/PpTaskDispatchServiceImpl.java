@@ -1,9 +1,12 @@
 package com.example.demo.Service;
 
+import com.example.demo.Address.XiguaAddress;
 import com.example.demo.Data.PpTask;
 import com.example.demo.Data.PpTaskClaim;
 import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskMapper;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +29,9 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
     @Autowired
     private PpTaskClaimMapper ppTaskClaimMapper;
+
+    @Autowired
+    private XiguaAddress xiguaAddress;
 
     @Value("${pptask.leaseMinutes:10}")
     private int leaseMinutes;
@@ -142,5 +148,80 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             }
         }
     }
+
+    /**
+     * 新增 ppTask 任务
+     * <p>
+     * 流程：
+     * 1. 校验参数（number、integral、personAddress）
+     * 2. 通过 personAddress 解析出 roomId 和主播名
+     * 3. 检查是否有小黄车/连线
+     * 4. 入库
+     *
+     * @param ppTask 前端传入的任务信息
+     * @return 插入后带自增 id 的 PpTask（成功时），或抛异常
+     */
+    @Transactional
+    public PpTask addPpTask(PpTask ppTask) {
+
+        // ========== 1. 参数校验 ==========
+        if (ppTask.getTotalNumber() == null || ppTask.getTotalNumber() <= 0) {
+            throw new IllegalArgumentException("任务数量必须大于0");
+        }
+
+        if (ppTask.getIntegral() == null || ppTask.getIntegral() <= 0) {
+            throw new IllegalArgumentException("积分必须大于0");
+        }
+
+        if (ppTask.getPersonAddress() == null || ppTask.getPersonAddress().isBlank()) {
+            throw new IllegalArgumentException("主播个人主页地址不能为空");
+        }
+
+        // ========== 2. 解析直播间信息 ==========
+        String secUid = xiguaAddress.getsecuidBypersonAddress(ppTask.getPersonAddress());
+        if (secUid == null || secUid.isBlank()) {
+            throw new IllegalArgumentException("个人地址解析错误");
+        }
+
+        String taskInfoJson = xiguaAddress.getTaskInfoBySecUid(secUid);
+        if (taskInfoJson == null || taskInfoJson.isBlank()) {
+            throw new IllegalArgumentException("获取任务信息失败");
+        }
+
+        JsonObject jsonElement = JsonParser.parseString(taskInfoJson).getAsJsonObject();
+        String roomId = jsonElement.get("roomId").getAsString();
+        if (roomId == null || roomId.isBlank()) {
+            throw new IllegalArgumentException("直播间地址解析错误");
+        }
+
+        // ========== 3. 检查小黄车/连线 ==========
+        String yellowish = xiguaAddress.getYellowish(roomId);
+        if ("yellow".equals(yellowish)) {
+            throw new IllegalArgumentException("禁止小黄车直播间");
+        }
+
+        // ========== 4. 获取主播名 ==========
+        String personName = xiguaAddress.getXiGuaName(roomId);
+        if (personName == null || personName.isBlank()) {
+            throw new IllegalArgumentException("主播名字解析错误");
+        }
+
+        // ========== 5. 组装数据并入库 ==========
+        ppTask.setRoomId(roomId);
+        ppTask.setPersonName(personName);
+        ppTask.setStatus(PP_TASK_CLAIM_STATUS_CLAIMED);
+        ppTask.setBeginTime(new Date());
+        int rows = ppTaskMapper.insertPpTask(ppTask);
+        if (rows <= 0) {
+            throw new RuntimeException("新增 ppTask 失败");
+        }
+
+        log.info("新增 ppTask 成功: id={}, roomId={}, personName={}, number={}",
+                ppTask.getId(), roomId, personName, ppTask.getTotalNumber());
+
+        return ppTask;
+    }
+
+
 
 }
