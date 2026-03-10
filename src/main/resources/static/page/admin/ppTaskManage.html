@@ -28,7 +28,7 @@
 
         <script type="text/html" id="toolbarDemo">
             <div class="layui-btn-container">
-                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 新 增 </button>
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 发 起 任 务 </button>
                 <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="batchDelete"> 批量删除 </button>
             </div>
         </script>
@@ -182,7 +182,7 @@
         // 新增/修改弹窗
         function openTaskForm(rowData) {
             var isEdit = rowData !== null;
-            var title = isEdit ? '修改PP任务' : '新增PP任务';
+            var title = isEdit ? '修改PP任务' : '发起PP任务';
             layer.open({
                 type: 1,
                 title: title,
@@ -190,17 +190,23 @@
                 resize: false,
                 shadeClose: true,
                 content: '<div class="layui-form" lay-filter="ppTaskForm" style="margin:20px;">' +
-                    '<div class="layui-form-item">' +
-                    '<label class="layui-form-label">直播间ID</label>' +
-                    '<div class="layui-input-block"><input type="text" name="roomId" lay-verify="required" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.roomId || '') : '') + '"></div>' +
-                    '</div>' +
-                    '<div class="layui-form-item">' +
-                    '<label class="layui-form-label">主播名称</label>' +
-                    '<div class="layui-input-block"><input type="text" name="personName" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.personName || '') : '') + '"></div>' +
-                    '</div>' +
+                    (!isEdit ?
+                        '<div class="layui-form-item">' +
+                        '<label class="layui-form-label">主播主页地址</label>' +
+                        '<div class="layui-input-block"><input type="text" name="personAddress" lay-verify="required" placeholder="请输入主播个人主页地址" autocomplete="off" class="layui-input"></div>' +
+                        '</div>' : '') +
+                    (isEdit ?
+                        '<div class="layui-form-item">' +
+                        '<label class="layui-form-label">直播间ID</label>' +
+                        '<div class="layui-input-block"><input type="text" name="roomId" autocomplete="off" class="layui-input" value="' + (rowData.roomId || '') + '"></div>' +
+                        '</div>' +
+                        '<div class="layui-form-item">' +
+                        '<label class="layui-form-label">主播名称</label>' +
+                        '<div class="layui-input-block"><input type="text" name="personName" autocomplete="off" class="layui-input" value="' + (rowData.personName || '') + '"></div>' +
+                        '</div>' : '') +
                     '<div class="layui-form-item">' +
                     '<label class="layui-form-label">任务标题</label>' +
-                    '<div class="layui-input-block"><input type="text" name="title" lay-verify="required" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.title || '') : '') + '"></div>' +
+                    '<div class="layui-input-block"><input type="text" name="title" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.title || '') : '') + '"></div>' +
                     '</div>' +
                     '<div class="layui-form-item">' +
                     '<label class="layui-form-label">任务数量</label>' +
@@ -221,7 +227,7 @@
                         '<option value="0" ' + (rowData.status === 0 ? 'selected' : '') + '>停用</option>' +
                         '</select></div></div>' : '') +
                     '<div class="layui-form-item">' +
-                    '<div class="layui-input-block"><button class="layui-btn layui-btn-fluid" lay-submit lay-filter="ppTaskFormSubmit">确 定</button></div>' +
+                    '<div class="layui-input-block"><button class="layui-btn layui-btn-fluid" lay-submit lay-filter="ppTaskFormSubmit">' + (isEdit ? '确 定' : '发 起 任 务') + '</button></div>' +
                     '</div>' +
                     '</div>',
                 success: function () {
@@ -246,7 +252,7 @@
                             success: function (res) {
                                 if (res.code === 200) {
                                     layer.closeAll();
-                                    layer.msg(isEdit ? '修改成功' : '新增成功', {icon: 1});
+                                    layer.msg(isEdit ? '修改成功' : '任务发起成功', {icon: 1});
                                     table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
                                 } else {
                                     layer.msg(res.msg || '操作失败', {icon: 2});
