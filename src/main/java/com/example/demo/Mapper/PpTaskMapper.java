@@ -28,9 +28,8 @@ public interface PpTaskMapper {
 
     int deletePpTask(@Param("id") BigInteger id);
 
-    List<PpTaskClaim> selectPpTaskClaimList(@Param("taskId") BigInteger taskId);
 
-    int updatePpTaskClaimStatus(@Param("id") BigInteger id, @Param("status") String status);
+
 
     int updateReceivedTaskNumber(@Param("id") BigInteger id);
 

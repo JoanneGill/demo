@@ -22,4 +22,8 @@ public interface PpTaskClaimMapper {
     List<PpTaskClaim> selectOverdueClaimedForUpdate(@Param("limit") int limit, @Param("now") Date now);
 
     int markExpired(@Param("claimId") BigInteger claimId, @Param("msg") String msg);
+
+    int updatePpTaskClaimStatus(@Param("id") BigInteger id, @Param("status") String status);
+
+    List<PpTaskClaim> selectPpTaskClaimList(@Param("taskId") BigInteger taskId);
 }

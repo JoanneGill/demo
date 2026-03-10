@@ -5,6 +5,7 @@ import com.example.demo.Config.Auth;
 import com.example.demo.Data.Pager;
 import com.example.demo.Data.PpTask;
 import com.example.demo.Data.PpTaskClaim;
+import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,8 @@ public class AdminPpTaskController {
 
     @Autowired
     PpTaskMapper ppTaskMapper;
-
+    @Autowired
+    PpTaskClaimMapper ppTaskClaimMapper;
     @Auth(user = "1000")
     @PostMapping("/list")
     public AjaxResult list(@RequestBody PpTask ppTask) {
@@ -71,7 +73,7 @@ public class AdminPpTaskController {
     @Auth(user = "1000")
     @GetMapping("/claimList")
     public AjaxResult claimList(@RequestParam("taskId") BigInteger taskId) {
-        List<PpTaskClaim> list = ppTaskMapper.selectPpTaskClaimList(taskId);
+        List<PpTaskClaim> list = ppTaskClaimMapper.selectPpTaskClaimList(taskId);
         return AjaxResult.success(list);
     }
 
@@ -85,7 +87,7 @@ public class AdminPpTaskController {
         if (status == null || (!status.equals("FAILED") && !status.equals("EXPIRED"))) {
             return AjaxResult.fail(-1, "状态值不合法，只允许 FAILED 或 EXPIRED");
         }
-        int rows = ppTaskMapper.updatePpTaskClaimStatus(ppTaskClaim.getId(), status);
+        int rows = ppTaskClaimMapper.updatePpTaskClaimStatus(ppTaskClaim.getId(), status);
         if (rows > 0) {
             return AjaxResult.success();
         }

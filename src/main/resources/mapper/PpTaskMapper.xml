@@ -19,7 +19,7 @@
          table has different columns (title, number, number_left, status, create_time, expire_time),
          so we use resultType with mapUnderscoreToCamelCase=true for auto-mapping here. -->
     <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask" resultType="com.example.demo.Data.PpTask">
-        select * from pptask
+        select * from pp_task
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
                 and room_id = #{pt.roomId}
@@ -38,7 +38,7 @@
     </select>
 
     <select id="selectPpTaskListTotal" parameterType="com.example.demo.Data.PpTask" resultType="java.lang.Integer">
-        select count(*) from pptask
+        select count(*) from pp_task
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
                 and room_id = #{pt.roomId}
@@ -53,13 +53,13 @@
     </select>
 
     <insert id="insertPpTask" parameterType="com.example.demo.Data.PpTask" useGeneratedKeys="true" keyProperty="pt.id">
-        insert into pptask (room_id, person_name, title, number, number_left, integral, status, create_time, expire_time)
+        insert into pp_task (room_id, person_name, title, number, number_left, integral, status, create_time, expire_time)
         values (#{pt.roomId}, #{pt.personName}, #{pt.title}, #{pt.number}, #{pt.number},
                 #{pt.integral}, 1, now(), #{pt.expireTime})
     </insert>
 
     <update id="updatePpTask" parameterType="com.example.demo.Data.PpTask">
-        update pptask
+        update pp_task
         <set>
             <if test="pt.roomId != null">room_id = #{pt.roomId},</if>
             <if test="pt.personName != null">person_name = #{pt.personName},</if>
@@ -73,18 +73,8 @@
     </update>
 
     <delete id="deletePpTask">
-        delete from pptask where id = #{id}
+        delete from pp_task where id = #{id}
     </delete>
-
-    <select id="selectPpTaskClaimList" resultType="com.example.demo.Data.PpTaskClaim">
-        select * from pptask_claim where task_id = #{taskId} order by claim_time desc
-    </select>
-
-    <update id="updatePpTaskClaimStatus">
-        update pptask_claim set status = #{status} where id = #{id}
-    </update>
-
-
 
     <sql id="cols">
         id, room_address, room_id, total_number, computed_number, person_address, person_name

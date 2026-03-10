@@ -28,10 +28,10 @@ public class ApplicationVariable {
     public static final String ARTICLE_ORDER_BY_RCOUNT = "rcount";
 
 
-    public static final String PP_TASK_CLAIM_STATUS_CLAIMED = "claimed";
-    public static final String PP_TASK_CLAIM_STATUS_SUCCESS = "success";
-    public static final String PP_TASK_CLAIM_STATUS_FAILED = "fail";
-    public static final String PP_TASK_CLAIM_STATUS_EXPIRED = "expired";
+    public static final String PP_TASK_CLAIM_STATUS_CLAIMED = "claimed";    // 任务中
+    public static final String PP_TASK_CLAIM_STATUS_SUCCESS = "success";   // 成功
+    public static final String PP_TASK_CLAIM_STATUS_FAILED = "fail";      // 失败
+    public static final String PP_TASK_CLAIM_STATUS_EXPIRED = "expired";  //超时
 
 
 

@@ -75,6 +75,13 @@
           AND lease_expire_time &lt;= NOW()
     </update>
 
+    <update id="updatePpTaskClaimStatus">
+        update pp_task_claim set status = #{status} where id = #{id}
+    </update>
+
+    <select id="selectPpTaskClaimList" resultMap="PpTaskClaimResultMap">
+        select * from pp_task_claim where task_id = #{taskId} order by begin_time desc
+    </select>
 
     <update id="markFinished" parameterType="java.math.BigInteger">
         <bind name="SUCCESS" value="@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_SUCCESS"/>
