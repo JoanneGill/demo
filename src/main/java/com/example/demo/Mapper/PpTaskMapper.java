@@ -15,4 +15,6 @@ public interface PpTaskMapper {
 
     int updateFailedTaskNumber(@Param("id") BigInteger id);
 
+    int updateReceivedTaskNumber(@Param("id") BigInteger id);
+
 }

@@ -51,6 +51,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         claim.setLeaseExpireTime(new Date(expireMs));
         try {
             ppTaskClaimMapper.insert(claim);
+            ppTaskMapper.updateReceivedTaskNumber(task.getId());
         } catch (DuplicateKeyException e) {
             log.warn("Device {} already claimed task {}", deviceId, task.getId());
             return null;
@@ -68,12 +69,12 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             if (!deviceId.equals(claim.getDeviceId())) {
                 throw new IllegalArgumentException("Device mismatch for claim " + claimId);
             }
-            if (PP_TASK_CLAIM_STATUS_SUCCESS.equals(claim.getStatus())) {
+            if (!PP_TASK_CLAIM_STATUS_CLAIMED.equals(claim.getStatus())) {
                 return;
             }
             int updated = ppTaskMapper.updateCompletedTaskNumber(claim.getTaskId());
             if (updated == 0) {
-                throw new IllegalStateException("Task already full, cannot increment compated_number for task " + claim.getTaskId());
+                throw new IllegalStateException("cannot increment compated_number for task " + claim.getTaskId());
             }
             int marked = ppTaskClaimMapper.markFinished(claimId);
             if (marked == 0) {
@@ -91,7 +92,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         if (!deviceId.equals(claim.getDeviceId())) {
             throw new IllegalArgumentException("Device mismatch for claim " + claimId);
         }
-        if (PP_TASK_CLAIM_STATUS_FAILED.equals(claim.getStatus())) {
+        if (!PP_TASK_CLAIM_STATUS_CLAIMED.equals(claim.getStatus())) {
             return;
         }
         int updated = ppTaskMapper.updateCompletedTaskNumber(claim.getTaskId());

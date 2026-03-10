@@ -100,7 +100,14 @@
         update pp_task
         set
         received_number = received_number - 1
-        where id = #{taskId}  and received_number &gt; 0
+        where id = #{id}  and received_number &gt;= 0
+    </update>
+
+    <update id="updateReceivedTaskNumber" parameterType="java.math.BigInteger">
+        update pp_task
+        set
+        received_number = received_number + 1
+        where id = #{id}  and received_number &lt;total_number
     </update>
 
     <select id="selectOneNotExecutedForUpdate"

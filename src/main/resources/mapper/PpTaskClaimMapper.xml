@@ -58,12 +58,14 @@
     </select>
 
 
-    <update id="markFailed">
-        <bind name="FAILED" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_FAILED"/>
-        UPDATE pp_task_claim
-        SET status = '${FAILED}', finish_time = NOW() ,msg = #{msg}
-        WHERE id = #{id}
-          AND status != '${FAILED}'
+    <update id="markFailed" >
+        <bind name="FAILED" value="@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_FAILED"/>
+        update pp_task_claim
+        set status = '${FAILED}',
+        completed_time = now(),
+        msg = #{msg}
+        where id = #{id}
+        and status != '${FAILED}'
     </update>
 
     <update id="expireOverdue">
@@ -75,7 +77,7 @@
 
 
     <update id="markFinished" parameterType="java.math.BigInteger">
-        <bind name="SUCCESS" value="@com.example.demo.constants.PpConst@PP_TASK_CLAIM_STATUS_SUCCESS"/>
+        <bind name="SUCCESS" value="@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_SUCCESS"/>
         update pp_task_claim
         set
         status = '${SUCCESS}',
