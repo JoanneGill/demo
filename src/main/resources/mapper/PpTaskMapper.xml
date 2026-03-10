@@ -15,7 +15,10 @@
         <result column="completed_time"   property="completedTime"/>
     </resultMap>
 
-    <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask">
+    <!-- Note: PpTaskResultMap above is for the pp_task (robot-flow) table. The admin pptask
+         table has different columns (title, number, number_left, status, create_time, expire_time),
+         so we use resultType with mapUnderscoreToCamelCase=true for auto-mapping here. -->
+    <select id="selectPpTaskList" parameterType="com.example.demo.Data.PpTask" resultType="com.example.demo.Data.PpTask">
         select * from pptask
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
@@ -34,7 +37,7 @@
         </if>
     </select>
 
-    <select id="selectPpTaskListTotal" parameterType="com.example.demo.Data.PpTask">
+    <select id="selectPpTaskListTotal" parameterType="com.example.demo.Data.PpTask" resultType="java.lang.Integer">
         select count(*) from pptask
         <trim prefix="where" prefixOverrides="and | or">
             <if test="pt.roomId != null and pt.roomId != ''">
@@ -73,7 +76,7 @@
         delete from pptask where id = #{id}
     </delete>
 
-    <select id="selectPpTaskClaimList">
+    <select id="selectPpTaskClaimList" resultType="com.example.demo.Data.PpTaskClaim">
         select * from pptask_claim where task_id = #{taskId} order by claim_time desc
     </select>
 

@@ -1,12 +1,28 @@
 -- pptask table
 CREATE TABLE IF NOT EXISTS `pptask` (
-    `id`               BIGINT       NOT NULL AUTO_INCREMENT,
-    `room_id`          VARCHAR(64)  DEFAULT NULL,
-    `total_number`     INT          DEFAULT 0,
-    `compated_number`  INT          DEFAULT 0,
+    `id`           BIGINT        NOT NULL AUTO_INCREMENT,
+    `room_id`      VARCHAR(64)   DEFAULT NULL,
+    `person_name`  VARCHAR(255)  DEFAULT NULL,
+    `title`        VARCHAR(255)  DEFAULT NULL,
+    `number`       INT           DEFAULT 0,
+    `number_left`  INT           DEFAULT 0,
+    `integral`     INT           DEFAULT 0,
+    `status`       INT           DEFAULT 1,
+    `create_time`  DATETIME      DEFAULT NULL,
+    `expire_time`  DATETIME      DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_room_id` (`room_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration: add admin columns to existing pptask table (safe to run on existing installs)
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `person_name`  VARCHAR(255) DEFAULT NULL;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `title`        VARCHAR(255) DEFAULT NULL;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `number`       INT          DEFAULT 0;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `number_left`  INT          DEFAULT 0;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `integral`     INT          DEFAULT 0;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `status`       INT          DEFAULT 1;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `create_time`  DATETIME     DEFAULT NULL;
+ALTER TABLE `pptask` ADD COLUMN IF NOT EXISTS `expire_time`  DATETIME     DEFAULT NULL;
 
 -- pptask_claim table
 CREATE TABLE IF NOT EXISTS `pptask_claim` (
