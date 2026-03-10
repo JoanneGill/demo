@@ -23,7 +23,10 @@ public class PpTaskClaim  {
     // 租约过期时间
     private Date leaseExpireTime;
 
-    // 状态
+    // 状态     public static final String PP_TASK_CLAIM_STATUS_CLAIMED = "claimed";    // 任务中
+    //    public static final String PP_TASK_CLAIM_STATUS_SUCCESS = "success";   // 成功
+    //    public static final String PP_TASK_CLAIM_STATUS_FAILED = "fail";      // 失败
+    //    public static final String PP_TASK_CLAIM_STATUS_EXPIRED = "expired";  //超时
     private String status;
 
     // 消息
