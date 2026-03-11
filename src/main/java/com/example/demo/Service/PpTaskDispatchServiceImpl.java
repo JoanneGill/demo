@@ -34,6 +34,9 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     @Autowired
     private XiguaAddress xiguaAddress;
 
+    @Autowired
+    private PpTaskArchiveService ppTaskArchiveService;
+
     @Value("${pptask.leaseMinutes:10}")
     private int leaseMinutes;
 
@@ -87,6 +90,11 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             if (marked == 0) {
                 throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
             }
+            // 检查任务是否全部完成，若完成则归档
+            PpTask task = ppTaskMapper.selectByIdForUpdate(claim.getTaskId());
+            if (task != null && "DONE".equals(task.getStatus())) {
+                ppTaskArchiveService.archiveTask(claim.getTaskId());
+            }
     }
 
     @Override
@@ -109,6 +117,11 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         int marked = ppTaskClaimMapper.markFailed(claimId,msg);
         if (marked == 0) {
             throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
+        }
+        // 检查任务是否全部完成，若完成则归档
+        PpTask task = ppTaskMapper.selectByIdForUpdate(claim.getTaskId());
+        if (task != null && "DONE".equals(task.getStatus())) {
+            ppTaskArchiveService.archiveTask(claim.getTaskId());
         }
     }
 

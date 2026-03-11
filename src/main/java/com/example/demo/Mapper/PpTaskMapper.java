@@ -33,4 +33,6 @@ public interface PpTaskMapper {
 
     int updateReceivedTaskNumber(@Param("id") BigInteger id);
 
+    PpTask selectByIdForUpdate(@Param("id") BigInteger id);
+
 }

@@ -117,4 +117,8 @@
           and status = '${@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_CLAIMED}'
     </update>
 
+    <delete id="deleteByTaskId">
+        DELETE FROM pp_task_claim WHERE task_id = #{taskId}
+    </delete>
+
 </mapper>

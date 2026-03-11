@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.Mapper.PpTaskClaimHistoryMapper">
+
+    <resultMap id="PpTaskClaimHistoryResultMap" type="com.example.demo.Data.PpTaskClaimHistory">
+        <id     column="id"                property="id"/>
+        <result column="task_id"           property="taskId"/>
+        <result column="device_id"         property="deviceId"/>
+        <result column="device_nick_name"  property="deviceNickName"/>
+        <result column="lease_expire_time" property="leaseExpireTime"/>
+        <result column="status"            property="status"/>
+        <result column="msg"               property="msg"/>
+        <result column="video_name"        property="videoName"/>
+        <result column="room_id"           property="roomId"/>
+        <result column="person_address"    property="personAddress"/>
+        <result column="integral"          property="integral"/>
+        <result column="begin_time"        property="beginTime"/>
+        <result column="completed_time"    property="completedTime"/>
+        <result column="archived_time"     property="archivedTime"/>
+    </resultMap>
+
+    <insert id="insertByTaskId">
+        INSERT INTO pp_task_claim_history
+            (id, task_id, device_id, device_nick_name, lease_expire_time,
+             status, msg, video_name, room_id, person_address,
+             integral, begin_time, completed_time, archived_time)
+        SELECT
+            id, task_id, device_id, device_nick_name, lease_expire_time,
+            status, msg, video_name, room_id, person_address,
+            integral, begin_time, completed_time, NOW()
+        FROM pp_task_claim
+        WHERE task_id = #{taskId}
+    </insert>
+
+    <select id="selectByTaskId" resultMap="PpTaskClaimHistoryResultMap">
+        SELECT * FROM pp_task_claim_history WHERE task_id = #{taskId} ORDER BY begin_time DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.Mapper.PpTaskHistoryMapper">
+
+    <resultMap id="PpTaskHistoryResultMap" type="com.example.demo.Data.PpTaskHistory">
+        <id     column="id"               property="id"/>
+        <result column="room_address"     property="roomAddress"/>
+        <result column="room_id"          property="roomId"/>
+        <result column="total_number"     property="totalNumber"/>
+        <result column="completed_number" property="completedNumber"/>
+        <result column="received_number"  property="receivedNumber"/>
+        <result column="person_address"   property="personAddress"/>
+        <result column="person_name"      property="personName"/>
+        <result column="integral"         property="integral"/>
+        <result column="begin_time"       property="beginTime"/>
+        <result column="completed_time"   property="completedTime"/>
+        <result column="status"           property="status"/>
+        <result column="create_time"      property="createdTime"/>
+        <result column="archived_time"    property="archivedTime"/>
+    </resultMap>
+
+    <insert id="insertFromTask">
+        INSERT INTO pp_task_history
+            (id, room_address, room_id, total_number, completed_number,
+             received_number, person_address, person_name, integral,
+             begin_time, completed_time, status, create_time, archived_time)
+        SELECT
+            id, room_address, room_id, total_number, completed_number,
+            received_number, person_address, person_name, integral,
+            begin_time, completed_time, status, created_time, NOW()
+        FROM pp_task
+        WHERE id = #{taskId}
+    </insert>
+
+    <select id="selectHistoryList" parameterType="com.example.demo.Data.PpTaskHistory" resultMap="PpTaskHistoryResultMap">
+        SELECT * FROM pp_task_history
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="pt.personName != null and pt.personName != ''">
+                AND person_name LIKE CONCAT('%', #{pt.personName}, '%')
+            </if>
+            <if test="pt.roomId != null and pt.roomId != ''">
+                AND room_id = #{pt.roomId}
+            </if>
+            <if test="pt.status != null and pt.status != ''">
+                AND status = #{pt.status}
+            </if>
+        </trim>
+        ORDER BY archived_time DESC
+        <if test="pt.pageSize != null and pt.size != null">
+            LIMIT #{pt.pageSize}, #{pt.size}
+        </if>
+    </select>
+
+    <select id="selectHistoryListTotal" parameterType="com.example.demo.Data.PpTaskHistory" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM pp_task_history
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="pt.personName != null and pt.personName != ''">
+                AND person_name LIKE CONCAT('%', #{pt.personName}, '%')
+            </if>
+            <if test="pt.roomId != null and pt.roomId != ''">
+                AND room_id = #{pt.roomId}
+            </if>
+            <if test="pt.status != null and pt.status != ''">
+                AND status = #{pt.status}
+            </if>
+        </trim>
+    </select>
+
+</mapper>

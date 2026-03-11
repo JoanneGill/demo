@@ -1,0 +1,163 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">直播间ID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="roomId" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">主播名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="personName" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit lay-filter="history-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="historyToolbar">
+            <div class="layui-btn-container">
+                <span style="line-height:30px;margin-left:5px;color:#999;">历史归档任务（只读）</span>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="ppTaskHistoryTableId" lay-filter="ppTaskHistoryTableFilter"></table>
+
+        <script type="text/html" id="ppTaskHistoryTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="claimList">领取记录</a>
+        </script>
+
+        <script type="text/html" id="historyStatusTpl">
+            {{# if(d.status === "DONE"){ }}
+            <span style="color:green">已完成</span>
+            {{# } else { }}
+            <span>{{d.status}}</span>
+            {{# } }}
+        </script>
+    </div>
+</div>
+
+<script>
+    layui.use(['form', 'table', 'miniPage', 'element'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table;
+
+        // 历史任务列表
+        table.render({
+            elem: '#ppTaskHistoryTableId',
+            url: '/admin/ppTask/history/list',
+            toolbar: '#historyToolbar',
+            method: 'post',
+            contentType: 'application/json',
+            parseData: function (res) {
+                return {
+                    "code": res.code,
+                    "msg": res.msg,
+                    "count": res.data.total,
+                    "data": res.data.data
+                };
+            },
+            response: {
+                statusCode: 200
+            },
+            request: {
+                pageName: 'page',
+                limitName: 'size'
+            },
+            defaultToolbar: ['filter', 'exports', 'print'],
+            cols: [[
+                {field: 'id', title: 'ID', width: 80},
+                {field: 'roomId', title: '直播间ID'},
+                {field: 'personName', title: '主播名称'},
+                {field: 'totalNumber', title: '总数量', width: 80},
+                {field: 'completedNumber', title: '完成数量', width: 80},
+                {field: 'integral', title: '积分/分', width: 80, sort: true},
+                {field: 'status', title: '状态', width: 80, templet: '#historyStatusTpl'},
+                {field: 'beginTime', title: '开始时间', sort: true},
+                {field: 'archivedTime', title: '归档时间', sort: true},
+                {title: '操作', width: 120, toolbar: '#ppTaskHistoryTableBar', align: "center"}
+            ]],
+            limits: [10, 20, 50, 100],
+            limit: 20,
+            page: true,
+            skin: 'line'
+        });
+
+        // 搜索
+        form.on('submit(history-search-btn)', function (data) {
+            table.reload('ppTaskHistoryTableId', {
+                page: {curr: 1},
+                where: data.field
+            }, 'data');
+            return false;
+        });
+
+        // 行操作
+        table.on('tool(ppTaskHistoryTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'claimList') {
+                openHistoryClaimList(data);
+            }
+            return false;
+        });
+
+        // 历史领取记录弹窗
+        function openHistoryClaimList(taskRow) {
+            var claimTableId = 'historyClaimTableId_' + taskRow.id;
+            layer.open({
+                type: 1,
+                title: '历史领取记录 - ' + (taskRow.personName || taskRow.id),
+                area: ['1400px', '850px'],
+                maxmin: true,
+                shadeClose: true,
+                content: '<div style="padding:10px;">' +
+                    '<table class="layui-hide" id="' + claimTableId + '" lay-filter="historyClaimTableFilter_' + taskRow.id + '"></table>' +
+                    '</div>',
+                success: function () {
+                    table.render({
+                        elem: '#' + claimTableId,
+                        url: '/admin/ppTask/history/claimList?taskId=' + taskRow.id,
+                        parseData: function (res) {
+                            return {
+                                "code": res.code,
+                                "msg": res.msg,
+                                "count": res.data ? res.data.length : 0,
+                                "data": res.data || []
+                            };
+                        },
+                        response: {statusCode: 200},
+                        cols: [[
+                            {field: 'id', title: 'ID', width: 80},
+                            {field: 'deviceId', title: '设备ID'},
+                            {field: 'deviceNickName', title: '设备昵称'},
+                            {field: 'status', title: '状态', width: 100, templet: function (d) {
+                                var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
+                                var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
+                                var c = colorMap[d.status] || 'black';
+                                var l = labelMap[d.status] || d.status;
+                                return '<span style="color:' + c + '">' + l + '</span>';
+                            }},
+                            {field: 'beginTime', title: '开始时间'},
+                            {field: 'completedTime', title: '完成时间'},
+                            {field: 'archivedTime', title: '归档时间'}
+                        ]],
+                        page: false,
+                        skin: 'line'
+                    });
+                }
+            });
+        }
+    });
+</script>

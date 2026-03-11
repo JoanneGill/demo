@@ -30,6 +30,7 @@
             <div class="layui-btn-container">
                 <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 新 增 </button>
                 <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="batchDelete"> 批量删除 </button>
+                <button class="layui-btn layui-btn-sm" lay-event="historyPage"> 历史任务 </button>
             </div>
         </script>
 
@@ -121,6 +122,8 @@
         table.on('toolbar(ppTaskTableFilter)', function (obj) {
             if (obj.event === 'add') {
                 openTaskForm(null);
+            } else if (obj.event === 'historyPage') {
+                miniPage.openIframe({title: '历史任务', url: '/page/admin/ppTaskHistory.html'});
             } else if (obj.event === 'batchDelete') {
                 var checkStatus = table.checkStatus('ppTaskTableId');
                 var checkedData = checkStatus.data;

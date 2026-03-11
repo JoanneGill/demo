@@ -5,7 +5,11 @@ import com.example.demo.Config.Auth;
 import com.example.demo.Data.Pager;
 import com.example.demo.Data.PpTask;
 import com.example.demo.Data.PpTaskClaim;
+import com.example.demo.Data.PpTaskClaimHistory;
+import com.example.demo.Data.PpTaskHistory;
+import com.example.demo.Mapper.PpTaskClaimHistoryMapper;
 import com.example.demo.Mapper.PpTaskClaimMapper;
+import com.example.demo.Mapper.PpTaskHistoryMapper;
 import com.example.demo.Mapper.PpTaskMapper;
 import com.example.demo.Service.PpTaskDispatchServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,10 @@ public class AdminPpTaskController {
     PpTaskMapper ppTaskMapper;
     @Autowired
     PpTaskClaimMapper ppTaskClaimMapper;
+    @Autowired
+    PpTaskHistoryMapper ppTaskHistoryMapper;
+    @Autowired
+    PpTaskClaimHistoryMapper ppTaskClaimHistoryMapper;
 
     @Autowired
     private PpTaskDispatchServiceImpl ppTaskDispatchServiceImpl;
@@ -107,5 +115,23 @@ public class AdminPpTaskController {
             return AjaxResult.success();
         }
         return AjaxResult.fail(-1, "操作失败");
+    }
+
+    @Auth(user = "1000")
+    @PostMapping("/history/list")
+    public AjaxResult historyList(@RequestBody PpTaskHistory ppTaskHistory) {
+        List<PpTaskHistory> data = ppTaskHistoryMapper.selectHistoryList(ppTaskHistory);
+        Integer total = ppTaskHistoryMapper.selectHistoryListTotal(ppTaskHistory);
+        Pager<PpTaskHistory> pager = new Pager<>();
+        pager.setData(data);
+        pager.setTotal(total);
+        return AjaxResult.success(pager);
+    }
+
+    @Auth(user = "1000")
+    @GetMapping("/history/claimList")
+    public AjaxResult historyClaimList(@RequestParam("taskId") BigInteger taskId) {
+        List<PpTaskClaimHistory> list = ppTaskClaimHistoryMapper.selectByTaskId(taskId);
+        return AjaxResult.success(list);
     }
 }
