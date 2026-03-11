@@ -51,7 +51,7 @@ public class PpTask {
     private String status;
 
     // 创建时间
-    private String createTime;
+    private String createdTime;
 
     // 分页参数
     private Integer page;

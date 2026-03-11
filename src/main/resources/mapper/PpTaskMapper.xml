@@ -13,6 +13,7 @@
         <result column="integral"         property="integral"/>
         <result column="begin_time"       property="beginTime"/>
         <result column="completed_time"   property="completedTime"/>
+        <result column="created_time"   property="createdTime"/>
     </resultMap>
 
     <!-- Note: PpTaskResultMap above is for the pp_task (robot-flow) table. The admin pptask
