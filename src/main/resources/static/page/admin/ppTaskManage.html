@@ -123,7 +123,14 @@
             if (obj.event === 'add') {
                 openTaskForm(null);
             } else if (obj.event === 'historyPage') {
-                miniPage.openIframe({title: '历史任务', url: '/page/admin/ppTaskHistory.html'});
+                layer.open({
+                    type: 2,
+                    title: '历史任务',
+                    area: ['95%', '95%'],
+                    maxmin: true,
+                    shadeClose: true,
+                    content: '/page/admin/ppTaskHistory.html'
+                });
             } else if (obj.event === 'batchDelete') {
                 var checkStatus = table.checkStatus('ppTaskTableId');
                 var checkedData = checkStatus.data;
