@@ -91,10 +91,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
             }
             // 检查任务是否全部完成，若完成则归档
-            PpTask task = ppTaskMapper.selectByIdForUpdate(claim.getTaskId());
-            if (task != null && "DONE".equals(task.getStatus())) {
-                ppTaskArchiveService.archiveTask(claim.getTaskId());
-            }
+            checkAndArchiveIfDone(claim.getTaskId());
     }
 
     @Override
@@ -119,9 +116,13 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
         }
         // 检查任务是否全部完成，若完成则归档
-        PpTask task = ppTaskMapper.selectByIdForUpdate(claim.getTaskId());
+        checkAndArchiveIfDone(claim.getTaskId());
+    }
+
+    private void checkAndArchiveIfDone(BigInteger taskId) {
+        PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
         if (task != null && "DONE".equals(task.getStatus())) {
-            ppTaskArchiveService.archiveTask(claim.getTaskId());
+            ppTaskArchiveService.archiveTask(taskId);
         }
     }
 
