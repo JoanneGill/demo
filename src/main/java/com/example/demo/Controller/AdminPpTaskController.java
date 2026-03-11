@@ -11,6 +11,7 @@ import com.example.demo.Mapper.PpTaskClaimHistoryMapper;
 import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskHistoryMapper;
 import com.example.demo.Mapper.PpTaskMapper;
+import com.example.demo.Service.PpTaskArchiveService;
 import com.example.demo.Service.PpTaskDispatchServiceImpl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,6 +40,9 @@ public class AdminPpTaskController {
 
     @Autowired
     private PpTaskDispatchServiceImpl ppTaskDispatchServiceImpl;
+
+    @Autowired
+    PpTaskArchiveService ppTaskArchiveService;
 
     @Auth(user = "1000")
     @PostMapping("/list")
@@ -87,27 +91,26 @@ public class AdminPpTaskController {
     @Auth(user = "1000")
     @PostMapping("/delete")
     public AjaxResult delete(@RequestBody Map<String, Object> json) {
-        // 支持 {"ids": [3,4]} 或 {"id": 3}
-        List<BigInteger> ids = null;
-        BigInteger id = null;
-
-        // 优先批量
+        List<BigInteger> ids = new ArrayList<>();
+        // 解析参数：支持 {"ids": [3,4]} 或 {"id": 3}
         if (json.containsKey("ids") && json.get("ids") instanceof List) {
-            ids = ((List<?>) json.get("ids")).stream()
-                    .map(x -> new BigInteger(x.toString()))
-                    .toList();
+            List<?> rawIds = (List<?>) json.get("ids");
+            for (Object obj : rawIds) {
+                ids.add(new BigInteger(obj.toString()));
+            }
+        } else if (json.containsKey("id") && json.get("id") != null) {
+            ids.add(new BigInteger(json.get("id").toString()));
         }
-        // 单个
-        else if (json.containsKey("id") && json.get("id") != null) {
-            id = new BigInteger(json.get("id").toString());
-        }
-
-        if ((ids == null || ids.isEmpty()) && id == null) {
+        if (ids.isEmpty()) {
             return AjaxResult.fail(-1, "id和ids不能为空");
         }
-
-        int rows = ppTaskMapper.deletePpTask(id, ids); // Mapper 见下
-        return rows > 0 ? AjaxResult.success() : AjaxResult.fail(-1, "删除失败");
+        try {
+            ppTaskArchiveService.moveTasksToHistory(ids);
+            return AjaxResult.success();
+        } catch (Exception e) {
+            log.error("归档删除任务失败", e);
+            return AjaxResult.fail(-1, e.getMessage());
+        }
     }
 
     @Auth(user = "1000")

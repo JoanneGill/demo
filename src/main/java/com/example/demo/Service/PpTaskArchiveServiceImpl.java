@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static com.example.demo.Config.ApplicationVariable.PP_TASK_CLAIM_STATUS_SUCCESS;
 
@@ -60,4 +61,32 @@ public class PpTaskArchiveServiceImpl implements PpTaskArchiveService {
 
         log.info("任务归档完成: taskId={}", task);
     }
+
+    @Override
+    @Transactional
+    public void moveTasksToHistory(List<BigInteger> taskIds) {
+        for (BigInteger taskId : taskIds) {
+            // 1. 锁定任务行，防止并发修改（如新认领）
+            PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
+            if (task == null) {
+                throw new RuntimeException("任务不存在，ID: " + taskId);
+            }
+
+            // 2. 将任务主体插入历史表
+            ppTaskHistoryMapper.insertFromTask(taskId);
+
+            // 3. 将该任务的所有认领记录插入历史表
+            ppTaskClaimHistoryMapper.insertByTaskId(taskId);
+
+            // 4. 删除原表的认领记录
+            ppTaskClaimMapper.deleteByTaskId(taskId);
+
+            // 5. 删除原表任务
+            ppTaskMapper.deletePpTask(taskId, null);
+
+            log.info("任务已归档删除: taskId={}", taskId);
+        }
+    }
+
+
 }
