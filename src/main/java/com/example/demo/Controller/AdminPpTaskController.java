@@ -12,12 +12,16 @@ import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskHistoryMapper;
 import com.example.demo.Mapper.PpTaskMapper;
 import com.example.demo.Service.PpTaskDispatchServiceImpl;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -82,15 +86,28 @@ public class AdminPpTaskController {
 
     @Auth(user = "1000")
     @PostMapping("/delete")
-    public AjaxResult delete(@RequestBody PpTask ppTask) {
-        if (ppTask.getId() == null) {
-            return AjaxResult.fail(-1, "id不能为空");
+    public AjaxResult delete(@RequestBody Map<String, Object> json) {
+        // 支持 {"ids": [3,4]} 或 {"id": 3}
+        List<BigInteger> ids = null;
+        BigInteger id = null;
+
+        // 优先批量
+        if (json.containsKey("ids") && json.get("ids") instanceof List) {
+            ids = ((List<?>) json.get("ids")).stream()
+                    .map(x -> new BigInteger(x.toString()))
+                    .toList();
         }
-        int rows = ppTaskMapper.deletePpTask(ppTask.getId());
-        if (rows > 0) {
-            return AjaxResult.success();
+        // 单个
+        else if (json.containsKey("id") && json.get("id") != null) {
+            id = new BigInteger(json.get("id").toString());
         }
-        return AjaxResult.fail(-1, "删除失败");
+
+        if ((ids == null || ids.isEmpty()) && id == null) {
+            return AjaxResult.fail(-1, "id和ids不能为空");
+        }
+
+        int rows = ppTaskMapper.deletePpTask(id, ids); // Mapper 见下
+        return rows > 0 ? AjaxResult.success() : AjaxResult.fail(-1, "删除失败");
     }
 
     @Auth(user = "1000")

@@ -32,6 +32,7 @@ public class ApplicationVariable {
     public static final String PP_TASK_CLAIM_STATUS_SUCCESS = "success";   // 成功
     public static final String PP_TASK_CLAIM_STATUS_FAILED = "fail";      // 失败
     public static final String PP_TASK_CLAIM_STATUS_EXPIRED = "expired";  //超时
+    public static final String PP_TASK_CLAIM_STATUS_DONE = "done";  //超时
 
 
 

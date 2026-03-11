@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface PpTaskMapper {
@@ -26,7 +27,7 @@ public interface PpTaskMapper {
 
     int updatePpTask(@Param("pt") PpTask ppTask);
 
-    int deletePpTask(@Param("id") BigInteger id);
+    int deletePpTask(@Param("id") BigInteger id, @Param("ids") List<BigInteger> ids);
 
 
 

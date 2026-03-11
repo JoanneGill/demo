@@ -84,7 +84,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             }
             int updated = ppTaskMapper.updateCompletedTaskNumber(claim.getTaskId());
             if (updated == 0) {
-                throw new IllegalStateException("cannot increment compated_number for task " + claim.getTaskId());
+                throw new IllegalStateException("cannot increment completed_number for task " + claim.getTaskId());
             }
             int marked = ppTaskClaimMapper.markFinished(claimId);
             if (marked == 0) {
@@ -121,8 +121,8 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
     private void checkAndArchiveIfDone(BigInteger taskId) {
         PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
-        if (task != null && "DONE".equals(task.getStatus())) {
-            ppTaskArchiveService.archiveTask(taskId);
+        if (task != null && PP_TASK_CLAIM_STATUS_SUCCESS.equals(task.getStatus())) {
+            ppTaskArchiveService.archiveTask(task);
         }
     }
 

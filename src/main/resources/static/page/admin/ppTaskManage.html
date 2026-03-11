@@ -30,18 +30,24 @@
             <div class="layui-btn-container">
                 <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 新 增 </button>
                 <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="batchDelete"> 批量删除 </button>
-                <button class="layui-btn layui-btn-sm" lay-event="historyPage"> 历史任务 </button>
+                <button class="layui-btn layui-btn-sm" lay-event="toggle-history" id="historyBtn"> 历史任务 </button>
             </div>
         </script>
 
         <table class="layui-hide" id="ppTaskTableId" lay-filter="ppTaskTableFilter"></table>
 
+        <!-- 普通任务操作栏 -->
         <script type="text/html" id="ppTaskTableBar">
             <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">修改</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="claimList">领取记录</a>
             <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
         </script>
-
+        <!-- 历史任务操作栏 -->
+        <script type="text/html" id="ppTaskHistoryTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="claimList">领取记录</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+        </script>
+        <!-- 状态渲染模板 -->
         <script type="text/html" id="statusTpl">
             {{# if(d.status === "claimed"){ }}
             <span style="color:green">任务中</span>
@@ -55,6 +61,15 @@
             <span style="color:red">停用</span>
             {{# } }}
         </script>
+        <!-- 历史状态模板 -->
+        <script type="text/html" id="historyStatusTpl">
+            {{# if(d.status === "DONE"){ }}
+            <span style="color:green">已完成</span>
+            {{# } else { }}
+            <span>{{d.status}}</span>
+            {{# } }}
+        </script>
+
     </div>
 </div>
 
@@ -66,48 +81,64 @@
             miniPage = layui.miniPage,
             laydate = layui.laydate;
 
-        // 主列表
-        table.render({
-            elem: '#ppTaskTableId',
-            url: '/admin/ppTask/list',
-            toolbar: '#toolbarDemo',
-            method: 'post',
-            contentType: 'application/json',
-            parseData: function (res) {
-                return {
-                    "code": res.code,
-                    "msg": res.msg,
-                    "count": res.data.total,
-                    "data": res.data.data
-                };
-            },
-            response: {
-                statusCode: 200
-            },
-            request: {
-                pageName: 'page',
-                limitName: 'size'
-            },
-            defaultToolbar: ['filter', 'exports', 'print'],
-            cols: [[
-                {type: "checkbox", width: 50},
-                {field: 'id', title: 'ID', width: 80},
-                {field: 'roomId', title: '直播间ID'},
-                {field: 'personName', title: '主播名称'},
-                {field: 'totalNumber', title: '总数量', width: 80},
-                {field: 'receivedNumber', title: '任务中数量', width: 80},
-                {field: 'completedNumber', title: '完成数量', width: 80},
-                {field: 'integral', title: '积分/分', width: 80, sort: true},
-                {field: 'status', title: '状态', width: 70, templet: '#statusTpl'},
-                {field: 'createdTime', title: '创建时间',sort: true},
-                {field: 'expireTime', title: '过期时间',sort: true},
-                {title: '操作', minWidth: 220, toolbar: '#ppTaskTableBar', align: "center"}
-            ]],
-            limits: [10, 20, 50, 100],
-            limit: 20,
-            page: true,
-            skin: 'line'
-        });
+        var isHistory = false;
+
+        function renderTable(whereData) {
+            table.render({
+                elem: '#ppTaskTableId',
+                url: isHistory ? '/admin/ppTask/history/list' : '/admin/ppTask/list',
+                toolbar: '#toolbarDemo',
+                method: 'post',
+                contentType: 'application/json',
+                parseData: function (res) {
+                    return {
+                        "code": res.code,
+                        "msg": res.msg,
+                        "count": (res.data && (res.data.total !== undefined ? res.data.total : res.data.length)) || 0,
+                        "data": (res.data && (res.data.data || res.data)) || []
+                    };
+                },
+                response: {statusCode: 200},
+                request: {pageName: 'page', limitName: 'size'},
+                defaultToolbar: ['filter', 'exports', 'print'],
+                cols: isHistory
+                    ? [[
+                        {type: "checkbox", width: 50},
+                        {field: 'id', title: 'ID', width: 80},
+                        {field: 'roomId', title: '直播间ID'},
+                        {field: 'personName', title: '主播名称'},
+                        {field: 'totalNumber', title: '总数量', width: 80},
+                        {field: 'completedNumber', title: '完成数量', width: 80},
+                        {field: 'integral', title: '积分/分', width: 80, sort: true},
+                        {field: 'status', title: '状态', width: 80, templet: '#historyStatusTpl'},
+                        {field: 'beginTime', title: '开始时间', sort: true},
+                        {field: 'archivedTime', title: '归档时间', sort: true},
+                        {title: '操作', width: 120, toolbar: '#ppTaskHistoryTableBar', align: "center"}
+                    ]]
+                    : [[
+                        {type: "checkbox", width: 50},
+                        {field: 'id', title: 'ID', width: 80},
+                        {field: 'roomId', title: '直播间ID'},
+                        {field: 'personName', title: '主播名称'},
+                        {field: 'totalNumber', title: '总数量', width: 80},
+                        {field: 'receivedNumber', title: '任务中数量', width: 80},
+                        {field: 'completedNumber', title: '完成数量', width: 80},
+                        {field: 'integral', title: '积分/分', width: 80, sort: true},
+                        {field: 'status', title: '状态', width: 70, templet: '#statusTpl'},
+                        {field: 'createdTime', title: '创建时间',sort: true},
+                        {field: 'expireTime', title: '过期时间',sort: true},
+                        {title: '操作', minWidth: 220, toolbar: '#ppTaskTableBar', align: "center"}
+                    ]],
+                limits: [10, 20, 50, 100],
+                limit: 20,
+                page: true,
+                skin: 'line',
+                where: whereData || {}
+            });
+        }
+
+        // 初始渲染
+        renderTable();
 
         // 搜索
         form.on('submit(data-search-btn)', function (data) {
@@ -118,19 +149,18 @@
             return false;
         });
 
-        // toolbar 事件
+        // 工具栏事件
         table.on('toolbar(ppTaskTableFilter)', function (obj) {
             if (obj.event === 'add') {
+                if (isHistory) {
+                    layer.msg('历史任务不能新增');
+                    return;
+                }
                 openTaskForm(null);
-            } else if (obj.event === 'historyPage') {
-                layer.open({
-                    type: 2,
-                    title: '历史任务',
-                    area: ['95%', '95%'],
-                    maxmin: true,
-                    shadeClose: true,
-                    content: '/page/admin/ppTaskHistory.html'
-                });
+            } else if (obj.event === 'toggle-history') {
+                isHistory = !isHistory;
+                $('#historyBtn').text(isHistory ? '返回当前任务' : '历史任务');
+                renderTable();
             } else if (obj.event === 'batchDelete') {
                 var checkStatus = table.checkStatus('ppTaskTableId');
                 var checkedData = checkStatus.data;
@@ -140,64 +170,88 @@
                 }
                 layer.confirm('确认批量删除选中记录？', {icon: 3}, function (index) {
                     layer.close(index);
-                    var count = checkedData.length;
-                    var done = 0;
-                    checkedData.forEach(function (item) {
-                        $.ajax({
-                            url: '/admin/ppTask/delete',
-                            data: JSON.stringify({id: item.id}),
-                            type: 'post',
-                            dataType: 'json',
-                            headers: {'Content-Type': 'application/json;charset=utf-8'},
-                            success: function (res) {
-                                done++;
-                                if (done === count) {
-                                    layer.msg('批量删除成功', {icon: 1});
-                                    table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
-                                }
-                            }
-                        });
-                    });
-                });
-            }
-        });
-
-        // 行操作
-        table.on('tool(ppTaskTableFilter)', function (obj) {
-            var data = obj.data;
-            if (obj.event === 'edit') {
-                openTaskForm(data);
-            } else if (obj.event === 'delete') {
-                layer.confirm('确认删除该任务？', {icon: 3}, function (index) {
-                    layer.close(index);
+                    var url = isHistory ? '/admin/ppTask/history/delete' : '/admin/ppTask/delete';
+                    var ids = checkedData.map(function (item) {return item.id});
                     $.ajax({
-                        url: '/admin/ppTask/delete',
-                        data: JSON.stringify({id: data.id}),
+                        url: url,
+                        data: JSON.stringify({ids: ids}),
                         type: 'post',
                         dataType: 'json',
                         headers: {'Content-Type': 'application/json;charset=utf-8'},
                         success: function (res) {
                             if (res.code === 200) {
                                 layer.msg('删除成功', {icon: 1});
-                                table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
+                                renderTable();
                             } else {
                                 layer.msg(res.msg || '删除失败', {icon: 2});
                             }
-                        },
-                        error: function () {
-                            layer.msg('删除失败', {icon: 2});
                         }
                     });
                 });
-            } else if (obj.event === 'claimList') {
-                openClaimList(data);
+            }
+        });
+
+        // 行操作事件
+        table.on('tool(ppTaskTableFilter)', function (obj) {
+            var data = obj.data;
+            if (isHistory) {
+                if (obj.event === 'claimList') {
+                    openHistoryClaimList(data);
+                } else if (obj.event === 'delete') {
+                    layer.confirm('确认删除该历史任务？', {icon: 3}, function (index) {
+                        layer.close(index);
+                        $.ajax({
+                            url: '/admin/ppTask/history/delete',
+                            data: JSON.stringify({ids: [data.id]}),
+                            type: 'post',
+                            dataType: 'json',
+                            headers: {'Content-Type': 'application/json;charset=utf-8'},
+                            success: function (res) {
+                                if (res.code === 200) {
+                                    layer.msg('删除成功', {icon: 1});
+                                    renderTable();
+                                } else {
+                                    layer.msg(res.msg || '删除失败', {icon: 2});
+                                }
+                            }
+                        });
+                    });
+                }
+            } else {
+                if (obj.event === 'edit') {
+                    openTaskForm(data);
+                } else if (obj.event === 'delete') {
+                    layer.confirm('确认删除该任务？', {icon: 3}, function (index) {
+                        layer.close(index);
+                        $.ajax({
+                            url: '/admin/ppTask/delete',
+                            data: JSON.stringify({id: data.id}),
+                            type: 'post',
+                            dataType: 'json',
+                            headers: {'Content-Type': 'application/json;charset=utf-8'},
+                            success: function (res) {
+                                if (res.code === 200) {
+                                    layer.msg('删除成功', {icon: 1});
+                                    renderTable();
+                                } else {
+                                    layer.msg(res.msg || '删除失败', {icon: 2});
+                                }
+                            },
+                            error: function () {
+                                layer.msg('删除失败', {icon: 2});
+                            }
+                        });
+                    });
+                } else if (obj.event === 'claimList') {
+                    openClaimList(data);
+                }
             }
             return false;
         });
 
-        // 新增/修改弹窗
+        // 新增/编辑弹窗
         function openTaskForm(rowData) {
-            var isEdit = rowData !== null;
+            var isEdit = !!rowData;
             var title = isEdit ? '修改PP任务' : '新增PP任务';
             layer.open({
                 type: 1,
@@ -264,7 +318,7 @@
                                 if (res.code === 200) {
                                     layer.closeAll();
                                     layer.msg(isEdit ? '修改成功' : '新增成功', {icon: 1});
-                                    table.reload('ppTaskTableId', {page: {curr: 1}}, 'data');
+                                    renderTable();
                                 } else {
                                     layer.msg(res.msg || '操作失败', {icon: 2});
                                 }
@@ -279,12 +333,59 @@
             });
         }
 
-        // 领取记录弹窗
+        // 历史领取记录弹窗
+        function openHistoryClaimList(taskRow) {
+            var claimTableId = 'historyClaimTableId_' + taskRow.id;
+            layer.open({
+                type: 1,
+                title: '历史领取记录 - ' + (taskRow.personName || taskRow.id),
+                area: ['1400px', '850px'],
+                maxmin: true,
+                shadeClose: true,
+                content: '<div style="padding:10px;">' +
+                    '<table class="layui-hide" id="' + claimTableId + '" lay-filter="historyClaimTableFilter_' + taskRow.id + '"></table>' +
+                    '</div>',
+                success: function () {
+                    table.render({
+                        elem: '#' + claimTableId,
+                        url: '/admin/ppTask/history/claimList?taskId=' + taskRow.id,
+                        parseData: function (res) {
+                            return {
+                                "code": res.code,
+                                "msg": res.msg,
+                                "count": res.data ? res.data.length : 0,
+                                "data": res.data || []
+                            };
+                        },
+                        response: {statusCode: 200},
+                        cols: [[
+                            {field: 'id', title: 'ID', width: 80},
+                            {field: 'deviceId', title: '设备ID'},
+                            {field: 'deviceNickName', title: '设备昵称'},
+                            {field: 'status', title: '状态', width: 100, templet: function (d) {
+                                    var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
+                                    var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
+                                    var c = colorMap[d.status] || 'black';
+                                    var l = labelMap[d.status] || d.status;
+                                    return '<span style="color:' + c + '">' + l + '</span>';
+                                }},
+                            {field: 'beginTime', title: '开始时间'},
+                            {field: 'completedTime', title: '完成时间'},
+                            {field: 'archivedTime', title: '归档时间'}
+                        ]],
+                        page: false,
+                        skin: 'line'
+                    });
+                }
+            });
+        }
+
+        // 当前任务领取记录弹窗
         function openClaimList(taskRow) {
             var claimTableId = 'claimTableId_' + taskRow.id;
             layer.open({
                 type: 1,
-                title: '任务领取记录 - ' + (taskRow.title || taskRow.id),
+                title: '任务领取记录 - ' + (taskRow.personName || taskRow.id),
                 area: ['1400px', '850px'],
                 maxmin: true,
                 shadeClose: true,
@@ -309,28 +410,27 @@
                             {field: 'deviceId', title: '设备ID'},
                             {field: 'deviceNickName', title: '设备昵称'},
                             {field: 'status', title: '状态', width: 100, templet: function (d) {
-                                var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
-                                var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
-                                var c = colorMap[d.status] || 'black';
-                                var l = labelMap[d.status] || d.status;
-                                return '<span style="color:' + c + '">' + l + '</span>';
-                            }},
+                                    var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
+                                    var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
+                                    var c = colorMap[d.status] || 'black';
+                                    var l = labelMap[d.status] || d.status;
+                                    return '<span style="color:' + c + '">' + l + '</span>';
+                                }},
                             {field: 'beginTime', title: '开始时间'},
                             {field: 'completedTime', title: '完成时间'},
                             {title: '操作', width: 200, templet: function (d) {
-                                var btns = '';
-                                if (d.status === 'CLAIMED') {
-                                    btns += '<a class="layui-btn layui-btn-xs layui-btn-danger claim-action" data-id="' + d.id + '" data-status="FAILED">标记失败</a> ';
-                                    btns += '<a class="layui-btn layui-btn-xs layui-btn-normal claim-action" data-id="' + d.id + '" data-status="EXPIRED">标记过期</a>';
-                                }
-                                return btns || '-';
-                            }}
+                                    var btns = '';
+                                    if (d.status === 'CLAIMED') {
+                                        btns += '<a class="layui-btn layui-btn-xs layui-btn-danger claim-action" data-id="' + d.id + '" data-status="FAILED">标记失败</a> ';
+                                        btns += '<a class="layui-btn layui-btn-xs layui-btn-normal claim-action" data-id="' + d.id + '" data-status="EXPIRED">标记过期</a>';
+                                    }
+                                    return btns || '-';
+                                }}
                         ]],
                         page: false,
                         skin: 'line'
                     });
 
-                    // 领取记录操作按钮事件（使用命名空间避免重复绑定）
                     $(document).off('click.ppClaim').on('click.ppClaim', '.claim-action', function () {
                         var $btn = $(this);
                         var claimId = $btn.data('id');

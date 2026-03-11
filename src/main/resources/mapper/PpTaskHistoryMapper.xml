@@ -15,7 +15,7 @@
         <result column="begin_time"       property="beginTime"/>
         <result column="completed_time"   property="completedTime"/>
         <result column="status"           property="status"/>
-        <result column="create_time"      property="createdTime"/>
+        <result column="created_time"      property="createdTime"/>
         <result column="archived_time"    property="archivedTime"/>
     </resultMap>
 
@@ -23,7 +23,7 @@
         INSERT INTO pp_task_history
             (id, room_address, room_id, total_number, completed_number,
              received_number, person_address, person_name, integral,
-             begin_time, completed_time, status, create_time, archived_time)
+             begin_time, completed_time, status, created_time, archived_time)
         SELECT
             id, room_address, room_id, total_number, completed_number,
             received_number, person_address, person_name, integral,

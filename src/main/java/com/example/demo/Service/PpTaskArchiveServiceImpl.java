@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 
+import static com.example.demo.Config.ApplicationVariable.PP_TASK_CLAIM_STATUS_SUCCESS;
+
 @Slf4j
 @Service
 public class PpTaskArchiveServiceImpl implements PpTaskArchiveService {
@@ -31,33 +33,31 @@ public class PpTaskArchiveServiceImpl implements PpTaskArchiveService {
     /**
      * 归档单个已完成的任务
      * 在同一事务中执行：
-     * 1. 查询 pp_task 确认 status = 'DONE'
-     * 2. INSERT INTO pp_task_history SELECT ... FROM pp_task WHERE id = taskId
-     * 3. INSERT INTO pp_task_claim_history SELECT ... FROM pp_task_claim WHERE task_id = taskId
-     * 4. DELETE FROM pp_task_claim WHERE task_id = taskId
-     * 5. DELETE FROM pp_task WHERE id = taskId
+     * 1. INSERT INTO pp_task_history SELECT ... FROM pp_task WHERE id = taskId
+     * 2. INSERT INTO pp_task_claim_history SELECT ... FROM pp_task_claim WHERE task_id = taskId
+     * 3. DELETE FROM pp_task_claim WHERE task_id = taskId
+     * 4. DELETE FROM pp_task WHERE id = taskId
      */
     @Transactional
     @Override
-    public void archiveTask(BigInteger taskId) {
-        PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
+    public void archiveTask(PpTask task) {
         if (task == null) {
-            log.warn("归档失败，任务不存在: {}", taskId);
+            log.warn("归档失败，任务不存在: {}", task);
             return;
         }
-        if (!"DONE".equals(task.getStatus())) {
-            log.warn("归档跳过，任务状态非DONE: taskId={}, status={}", taskId, task.getStatus());
+        if (!PP_TASK_CLAIM_STATUS_SUCCESS.equals(task.getStatus())) {
+            log.warn("归档跳过，任务状态非DONE: taskId={}, status={}", task.getId(), task.getStatus());
             return;
         }
 
         // 搬移到历史表
-        ppTaskHistoryMapper.insertFromTask(taskId);
-        ppTaskClaimHistoryMapper.insertByTaskId(taskId);
+        ppTaskHistoryMapper.insertFromTask(task.getId());
+        ppTaskClaimHistoryMapper.insertByTaskId(task.getId());
 
         // 删除原表数据
-        ppTaskClaimMapper.deleteByTaskId(taskId);
-        ppTaskMapper.deletePpTask(taskId);
+        ppTaskClaimMapper.deleteByTaskId(task.getId());
+        ppTaskMapper.deletePpTask(task.getId(),null);
 
-        log.info("任务归档完成: taskId={}", taskId);
+        log.info("任务归档完成: taskId={}", task);
     }
 }
