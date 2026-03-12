@@ -113,7 +113,7 @@
         update pp_task
         set
         received_number = received_number + 1
-        where id = #{id}  and received_number &lt;total_number
+        where id = #{id}  and received_number &lt; total_number - completed_number
     </update>
 
     <select id="selectOneNotExecutedForUpdate"
@@ -126,7 +126,7 @@
             from pp_task_claim c
             where c.room_id = t.room_id
               and c.device_id = #{deviceId}
-        )
+        ) and completed_number &lt;&gt; total_number and   received_number &lt; total_number - completed_number
         order by t.begin_time asc
             limit 1
         for update

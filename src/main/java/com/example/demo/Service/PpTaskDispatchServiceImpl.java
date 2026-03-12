@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.example.demo.Address.XiguaAddress;
 import com.example.demo.Data.PpTask;
 import com.example.demo.Data.PpTaskClaim;
+import com.example.demo.Data.Vo.TaskArchiveEvent;
 import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskMapper;
 import com.google.gson.JsonObject;
@@ -11,7 +12,7 @@ import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     private XiguaAddress xiguaAddress;
 
     @Autowired
-    private PpTaskArchiveService ppTaskArchiveService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Value("${pptask.leaseMinutes:10}")
     private int leaseMinutes;
@@ -59,12 +60,10 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         claim.setDeviceNickName(deviceNickName);
         long expireMs = System.currentTimeMillis() + (long) leaseMinutes * 60 * 1000;
         claim.setLeaseExpireTime(DateUtil.date(expireMs).toString());
-        try {
-            ppTaskClaimMapper.insert(claim);
-            ppTaskMapper.updateReceivedTaskNumber(task.getId());
-        } catch (DuplicateKeyException e) {
-            log.warn("Device {} already claimed task {}", deviceId, task.getId());
-            return null;
+        ppTaskClaimMapper.insert(claim);
+        int update = ppTaskMapper.updateReceivedTaskNumber(task.getId());
+        if (update != 1){
+            throw new IllegalArgumentException("Claim Device fail "+ deviceId);
         }
         return claim;
     }
@@ -91,7 +90,8 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
             }
             // 检查任务是否全部完成，若完成则归档
-            checkAndArchiveIfDone(claim.getTaskId());
+            // 事物提交后 异步归档，避免长事务和锁表
+        eventPublisher.publishEvent(new TaskArchiveEvent(claim.getTaskId()));
     }
 
     @Override
@@ -107,22 +107,13 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         if (!PP_TASK_CLAIM_STATUS_CLAIMED.equals(claim.getStatus())) {
             return;
         }
-        int updated = ppTaskMapper.updateCompletedTaskNumber(claim.getTaskId());
+        int updated = ppTaskMapper.updateFailedTaskNumber(claim.getTaskId());
         if (updated == 0) {
             throw new IllegalStateException("Task already full, cannot increment compated_number for task " + claim.getTaskId());
         }
         int marked = ppTaskClaimMapper.markFailed(claimId,msg);
         if (marked == 0) {
             throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
-        }
-        // 检查任务是否全部完成，若完成则归档
-        checkAndArchiveIfDone(claim.getTaskId());
-    }
-
-    private void checkAndArchiveIfDone(BigInteger taskId) {
-        PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
-        if (task != null && PP_TASK_CLAIM_STATUS_SUCCESS.equals(task.getStatus())) {
-            ppTaskArchiveService.archiveTask(task);
         }
     }
 

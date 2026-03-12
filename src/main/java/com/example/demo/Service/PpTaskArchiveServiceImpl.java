@@ -8,6 +8,7 @@ import com.example.demo.Mapper.PpTaskMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
@@ -39,27 +40,33 @@ public class PpTaskArchiveServiceImpl implements PpTaskArchiveService {
      * 3. DELETE FROM pp_task_claim WHERE task_id = taskId
      * 4. DELETE FROM pp_task WHERE id = taskId
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void archiveTask(PpTask task) {
-        if (task == null) {
-            log.warn("归档失败，任务不存在: {}", task);
-            return;
+    public void archiveTask(BigInteger id) {
+        try {
+            PpTask task = ppTaskMapper.selectByIdForUpdate(id);
+            if (task == null) {
+                log.warn("归档失败，任务不存在: {}", task);
+                return;
+            }
+            if (!PP_TASK_CLAIM_STATUS_SUCCESS.equals(task.getStatus())) {
+                log.warn("归档跳过，任务状态非DONE: taskId={}, status={}", task.getId(), task.getStatus());
+                return;
+            }
+
+            // 搬移到历史表
+            ppTaskHistoryMapper.insertFromTask(task.getId());
+            ppTaskClaimHistoryMapper.insertByTaskId(task.getId());
+
+            // 删除原表数据
+            ppTaskClaimMapper.deleteByTaskId(task.getId());
+            ppTaskMapper.deletePpTask(task.getId(),null);
+            log.info("任务归档完成: taskId={}", task);
         }
-        if (!PP_TASK_CLAIM_STATUS_SUCCESS.equals(task.getStatus())) {
-            log.warn("归档跳过，任务状态非DONE: taskId={}, status={}", task.getId(), task.getStatus());
-            return;
+        catch (Exception e) {
+            log.error("任务归档失败: taskId={}, error={}", id, e.getMessage(), e);
+            throw new RuntimeException("任务归档失败: " + e.getMessage(), e);
         }
-
-        // 搬移到历史表
-        ppTaskHistoryMapper.insertFromTask(task.getId());
-        ppTaskClaimHistoryMapper.insertByTaskId(task.getId());
-
-        // 删除原表数据
-        ppTaskClaimMapper.deleteByTaskId(task.getId());
-        ppTaskMapper.deletePpTask(task.getId(),null);
-
-        log.info("任务归档完成: taskId={}", task);
     }
 
     @Override

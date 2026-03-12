@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface PpTaskArchiveService {
-    void archiveTask(PpTask task);
+    void archiveTask(BigInteger id);
 
     /**
      * 将指定任务及其认领记录移动到历史表，并从原表删除（不限状态）
