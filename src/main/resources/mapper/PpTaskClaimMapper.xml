@@ -16,6 +16,8 @@
         <result column="integral"          property="integral"/>
         <result column="begin_time"        property="beginTime"/>
         <result column="completed_time"    property="completedTime"/>
+        <result column="cardNo"            property="card_no"/>
+        <result column="diamond"            property="diamond"/>
     </resultMap>
 
     <insert id="insert"
@@ -36,6 +38,8 @@
             <if test="integral != null">integral,</if>
             <if test="beginTime != null">begin_time,</if>
             <if test="completedTime != null">completed_time,</if>
+            <if test="cardNo != null">card_no,</if>
+            <if test="diamond != null">diamond</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="taskId != null">#{taskId},</if>
@@ -50,6 +54,8 @@
             <if test="integral != null">#{integral},</if>
             <if test="beginTime != null">#{beginTime},</if>
             <if test="completedTime != null">#{completedTime},</if>
+            <if test="cardNo != null">#{cardNo},</if>
+            <if test="diamond != null">#{diamond},</if>
         </trim>
     </insert>
 
@@ -83,11 +89,17 @@
         select * from pp_task_claim where task_id = #{taskId} order by begin_time desc
     </select>
 
-    <update id="markFinished" parameterType="java.math.BigInteger">
+    <update id="markFinished" >
         <bind name="SUCCESS" value="@com.example.demo.Config.ApplicationVariable@PP_TASK_CLAIM_STATUS_SUCCESS"/>
         update pp_task_claim
         set
         status = '${SUCCESS}',
+        <if test="diamond != null and diamond != ''">
+            diamond = #{diamond},
+        </if>
+        <if test="msg != null and msg != ''">
+            msg = #{msg},
+        </if>
         completed_time = now()
         where id = #{id}
         and status != '${SUCCESS}'

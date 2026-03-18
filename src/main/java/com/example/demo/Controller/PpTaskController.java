@@ -15,6 +15,7 @@ public class PpTaskController {
     @Autowired
     private PpTaskDispatchService ppTaskDispatchService;
 
+
     @GetMapping("/claim")
     public AjaxResult claim(@RequestParam String deviceId,
                             @RequestParam(required = false) String deviceNickName,
@@ -31,13 +32,14 @@ public class PpTaskController {
     public AjaxResult finish(@RequestParam BigInteger claimId,
                              @RequestParam String deviceId,
                              @RequestParam Boolean success,
-                             @RequestParam(required = false) String msg) {
+                             @RequestParam(required = false) String msg,
+                             @RequestParam(required = false) Integer diamond) {
         try {
             if (Boolean.TRUE.equals(success)) {
-                ppTaskDispatchService.finishSuccess(claimId, deviceId);
+                ppTaskDispatchService.finishSuccess(claimId, deviceId,msg,diamond);
                 return AjaxResult.success("FINISH_SUCCESS");
             } else {
-                ppTaskDispatchService.finishFail(claimId, deviceId,msg);
+                ppTaskDispatchService.finishFail(claimId, deviceId,msg,diamond);
                 return AjaxResult.success("FINISH_FAIL");
             }
         } catch (Exception e) {

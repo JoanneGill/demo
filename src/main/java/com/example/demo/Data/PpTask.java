@@ -32,6 +32,9 @@ public class PpTask {
     // 直播间人员姓名
     private String personName;
 
+    // 直播间人员sec_uid
+    private String secUid;
+
     // 积分
     private Integer integral;
 

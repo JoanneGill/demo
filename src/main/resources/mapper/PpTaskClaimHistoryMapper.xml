@@ -17,17 +17,18 @@
         <result column="begin_time"        property="beginTime"/>
         <result column="completed_time"    property="completedTime"/>
         <result column="archived_time"     property="archivedTime"/>
+        <result column="cardNo"            property="card_no"/>
     </resultMap>
 
     <insert id="insertByTaskId">
         INSERT INTO pp_task_claim_history
             (id, task_id, device_id, device_nick_name, lease_expire_time,
              status, msg, video_name, room_id, person_address,
-             integral, begin_time, completed_time, archived_time)
+             integral, begin_time, completed_time, archived_time,card_no,diamond)
         SELECT
             id, task_id, device_id, device_nick_name, lease_expire_time,
             status, msg, video_name, room_id, person_address,
-            integral, begin_time, completed_time, NOW()
+            integral, begin_time, completed_time, NOW(),card_no,diamond
         FROM pp_task_claim
         WHERE task_id = #{taskId}
     </insert>

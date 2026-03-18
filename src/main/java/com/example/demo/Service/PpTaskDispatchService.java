@@ -8,9 +8,9 @@ public interface PpTaskDispatchService {
 
     PpTaskClaim claimOne(String deviceId,String deviceNickName , String cardNo);
 
-    void finishSuccess(BigInteger claimId, String deviceId);
+    void finishSuccess(BigInteger claimId, String deviceId,String msg,Integer diamond);
 
-    void finishFail(BigInteger claimId, String deviceId, String msg);
+    void finishFail(BigInteger claimId, String deviceId, String msg, Integer diamond);
 
     void expireOverdueClaims();
 

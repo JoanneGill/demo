@@ -2,11 +2,11 @@ package com.example.demo.Service;
 
 import cn.hutool.core.date.DateUtil;
 import com.example.demo.Address.XiguaAddress;
-import com.example.demo.Data.PpTask;
-import com.example.demo.Data.PpTaskClaim;
+import com.example.demo.Data.*;
 import com.example.demo.Data.Vo.TaskArchiveEvent;
 import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskMapper;
+import com.example.demo.Mapper.UserMapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +38,24 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
+    @Autowired
+    private UserMapper userMapper;
+
+    List<DeviceData> deviceList = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
+
     @Value("${pptask.leaseMinutes:10}")
     private int leaseMinutes;
 
     @Override
     @Transactional
     public PpTaskClaim claimOne(String deviceId, String deviceNickName,String cardNo) {
+        long now = System.currentTimeMillis();
+        for (DeviceData d : deviceList) {
+            if (deviceId.equals(d.getDeviceId())) {
+                d.setPpState(now);
+                break;
+            }
+        }
         PpTask task = ppTaskMapper.selectOneNotExecutedForUpdate(deviceId);
         if (task == null) {return null;}
         PpTaskClaim claim = new PpTaskClaim();
@@ -57,7 +69,10 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         claim.setPpTask(task.toString());
         claim.setVideoName(task.getPersonName());
         claim.setDeviceId(deviceId);
+        claim.setCardNo(cardNo);
+        claim.setSec_uid(task.getSecUid());
         claim.setDeviceNickName(deviceNickName);
+        log.info(claim.toString());
         long expireMs = System.currentTimeMillis() + (long) leaseMinutes * 60 * 1000;
         claim.setLeaseExpireTime(DateUtil.date(expireMs).toString());
         ppTaskClaimMapper.insert(claim);
@@ -70,7 +85,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
     @Override
     @Transactional
-    public void finishSuccess(BigInteger claimId, String deviceId) {
+    public void finishSuccess(BigInteger claimId, String deviceId,String msg,Integer diamond) {
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
             if (claim == null) {
                 throw new IllegalArgumentException("Claim not found: " + claimId);
@@ -85,10 +100,21 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             if (updated == 0) {
                 throw new IllegalStateException("cannot increment completed_number for task " + claim.getTaskId());
             }
-            int marked = ppTaskClaimMapper.markFinished(claimId);
+            int marked = ppTaskClaimMapper.markFinished(claimId,diamond,msg);
             if (marked == 0) {
                 throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
             }
+        if (claim.getCardNo() != null && claim.getIntegral() != null && claim.getIntegral() > 0) {
+            User user = userMapper.selectMyInfoByCardNo(claim.getCardNo());
+            if (user != null) {
+                long current = user.getTempIntegral() != null ? user.getTempIntegral() : 0L;
+                long add = claim.getIntegral().longValue();
+                boolean ok = userMapper.changeTempIntegral(claim.getCardNo(), current + add);
+                if (!ok) {
+                    log.warn("finishSuccess add tempIntegral failed, cardNo={}, integral={}", claim.getCardNo(), add);
+                }
+            }
+        }
             // 检查任务是否全部完成，若完成则归档
             // 事物提交后 异步归档，避免长事务和锁表
         eventPublisher.publishEvent(new TaskArchiveEvent(claim.getTaskId()));
@@ -96,7 +122,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
     @Override
     @Transactional
-    public void finishFail(BigInteger claimId, String deviceId,String msg) {
+    public void finishFail(BigInteger claimId, String deviceId,String msg,Integer diamond) {
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
         if (claim == null) {
             throw new IllegalArgumentException("Claim not found: " + claimId);
@@ -214,6 +240,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
         // ========== 5. 组装数据并入库 ==========
         ppTask.setRoomId(roomId);
+        ppTask.setSecUid(secUid);
         ppTask.setPersonName(personName);
         ppTask.setStatus(PP_TASK_CLAIM_STATUS_CLAIMED);
         ppTask.setBeginTime(DateUtil.now());

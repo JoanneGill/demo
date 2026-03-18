@@ -127,6 +127,13 @@
             where c.room_id = t.room_id
               and c.device_id = #{deviceId}
         ) and completed_number &lt;&gt; total_number and   received_number &lt; total_number - completed_number
+          and not exists (
+            select 1
+            from pp_task_claim_history h
+            where h.begin_time &gt;= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+              and h.device_id = #{deviceId}
+              and h.room_id = t.room_id
+        )
         order by t.begin_time asc
             limit 1
         for update

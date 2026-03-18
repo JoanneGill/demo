@@ -17,6 +17,11 @@ public class PpTaskClaim  {
     // 设备ID
     private String deviceId;
 
+    private String cardNo;
+
+    private Integer diamond; //所剩积分
+
+    private String sec_uid;
     // 设备昵称
     private String deviceNickName;
 

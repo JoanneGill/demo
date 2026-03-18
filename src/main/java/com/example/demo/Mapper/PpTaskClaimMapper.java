@@ -15,7 +15,7 @@ public interface PpTaskClaimMapper {
 
     PpTaskClaim selectByIdForUpdate(@Param("id") BigInteger id);
 
-    int markFinished(@Param("id") BigInteger id);
+    int markFinished(@Param("id") BigInteger id,@Param("diamond")Integer diamond,@Param("msg") String msg );
 
     int markFailed(@Param("id") BigInteger id,@Param("msg") String msg);
 
