@@ -110,7 +110,7 @@
                         {field: 'totalNumber', title: '总数量', width: 80},
                         {field: 'completedNumber', title: '完成数量', width: 80},
                         {field: 'integral', title: '积分/分', width: 80, sort: true},
-                        {field: 'status', title: '状态', width: 80, templet: '#historyStatusTpl'},
+                        // {field: 'status', title: '状态', width: 80, templet: '#historyStatusTpl'},
                         {field: 'beginTime', title: '开始时间', sort: true},
                         {field: 'archivedTime', title: '归档时间', sort: true},
                         {title: '操作', width: 120, toolbar: '#ppTaskHistoryTableBar', align: "center"}
@@ -124,7 +124,7 @@
                         {field: 'receivedNumber', title: '任务中数量', width: 80},
                         {field: 'completedNumber', title: '完成数量', width: 80},
                         {field: 'integral', title: '积分/分', width: 80, sort: true},
-                        {field: 'status', title: '状态', width: 70, templet: '#statusTpl'},
+                        // {field: 'status', title: '状态', width: 70, templet: '#statusTpl'},
                         {field: 'createdTime', title: '创建时间',sort: true},
                         {field: 'expireTime', title: '过期时间',sort: true},
                         {title: '操作', minWidth: 220, toolbar: '#ppTaskTableBar', align: "center"}
@@ -284,12 +284,12 @@
                     '<label class="layui-form-label">开始时间</label>' +
                     '<div class="layui-input-block"><input type="text" name="beginTime" id="beginTime" autocomplete="off" class="layui-input" value="' + (isEdit ? (rowData.beginTime || '') : '') + '"></div>' +
                     '</div>' +
-                    (isEdit ? '<input type="hidden" name="id" value="' + rowData.id + '">' : '') +
-                    (isEdit ? '<div class="layui-form-item"><label class="layui-form-label">状态</label>' +
-                        '<div class="layui-input-block"><select name="status" lay-verify="required">' +
-                        '<option value="1" ' + (rowData.status === 1 ? 'selected' : '') + '>启用</option>' +
-                        '<option value="0" ' + (rowData.status === 0 ? 'selected' : '') + '>停用</option>' +
-                        '</select></div></div>' : '') +
+                    // (isEdit ? '<input type="hidden" name="id" value="' + rowData.id + '">' : '') +
+                    // (isEdit ? '<div class="layui-form-item"><label class="layui-form-label">状态</label>' +
+                    //     '<div class="layui-input-block"><select name="status" lay-verify="required">' +
+                    //     '<option value="1" ' + (rowData.status === 1 ? 'selected' : '') + '>启用</option>' +
+                    //     '<option value="0" ' + (rowData.status === 0 ? 'selected' : '') + '>停用</option>' +
+                    //     '</select></div></div>' : '') +
                     '<div class="layui-form-item">' +
                     '<div class="layui-input-block"><button class="layui-btn layui-btn-fluid" lay-submit lay-filter="ppTaskFormSubmit">确 定</button></div>' +
                     '</div>' +
@@ -362,13 +362,13 @@
                             {field: 'id', title: 'ID', width: 80},
                             {field: 'deviceId', title: '设备ID'},
                             {field: 'deviceNickName', title: '设备昵称'},
-                            {field: 'status', title: '状态', width: 100, templet: function (d) {
-                                    var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
-                                    var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
-                                    var c = colorMap[d.status] || 'black';
-                                    var l = labelMap[d.status] || d.status;
-                                    return '<span style="color:' + c + '">' + l + '</span>';
-                                }},
+                            // {field: 'status', title: '状态', width: 100, templet: function (d) {
+                            //         var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
+                            //         var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
+                            //         var c = colorMap[d.status] || 'black';
+                            //         var l = labelMap[d.status] || d.status;
+                            //         return '<span style="color:' + c + '">' + l + '</span>';
+                            //     }},
                             {field: 'beginTime', title: '开始时间'},
                             {field: 'completedTime', title: '完成时间'},
                             {field: 'archivedTime', title: '归档时间'}
@@ -416,11 +416,13 @@
                                     var l = labelMap[d.status] || d.status;
                                     return '<span style="color:' + c + '">' + l + '</span>';
                                 }},
+                            {field: 'msg', title: '完成信息', sort: true},
+                            {field: 'diamond', title: '剩余钻石', sort: true},
                             {field: 'beginTime', title: '开始时间'},
                             {field: 'completedTime', title: '完成时间'},
                             {title: '操作', width: 200, templet: function (d) {
                                     var btns = '';
-                                    if (d.status === 'CLAIMED') {
+                                    if (d.status === 'claimed') {
                                         btns += '<a class="layui-btn layui-btn-xs layui-btn-danger claim-action" data-id="' + d.id + '" data-status="FAILED">标记失败</a> ';
                                         btns += '<a class="layui-btn layui-btn-xs layui-btn-normal claim-action" data-id="' + d.id + '" data-status="EXPIRED">标记过期</a>';
                                     }

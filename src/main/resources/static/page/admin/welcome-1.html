@@ -136,6 +136,78 @@
                             </div>
                         </div>
                     </div>
+                    <hr style="margin:12px 0;">
+                    <div class="layui-row layui-col-space3">
+                        <div class="layui-col-xs4">
+                            <div class="panel layui-bg-number">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-cyan">PP</span>
+                                        <h5>PP在线设备</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 class="no-margins" id="ppWaitDevices">0</h1>
+                                        <small>pp在线设备数量</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs4">
+                            <div class="panel layui-bg-number">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-blue">PP</span>
+                                        <h5>PP全部做设备</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 class="no-margins" id="ppAllDoDevices">0</h1>
+                                        <small>ppModel=allDo</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs4">
+                            <div class="panel layui-bg-number">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-orange">PP</span>
+                                        <h5>PP等待做设备</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 class="no-margins" id="ppWaitDoDevices">0</h1>
+                                        <small>ppModel=waitDo</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs4">
+                            <div class="panel layui-bg-number">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-gray">PP</span>
+                                        <h5>PP不做设备</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 class="no-margins" id="ppNotDoDevices">0</h1>
+                                        <small>ppModel=notDo</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs4">
+                            <div class="panel layui-bg-number">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-green">PP</span>
+                                        <h5>PP任务中设备</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 class="no-margins" id="ppWorkingDevices">0</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 <!--                    <div class="layui-col-md6">-->
 <!--                        <div class="layui-card">-->
 <!--                            <div class="layui-card-header"><i class="fa fa-credit-card icon icon-blue"></i>快捷入口</div>-->
@@ -511,6 +583,11 @@
                         $("#todayTotalIntegral").html(data.data.todayTotalIntegral)
                         $("#todayExchangeIntegral").html(data.data.todayExchangeIntegral)
                         $("#todayAlreadyExchangeIntegral").html(data.data.todayAlreadyExchangeIntegral)
+                        $("#ppWaitDevices").html(data.data.ppWaitDevices)
+                        $("#ppAllDoDevices").html(data.data.ppAllDoDevices)
+                        $("#ppWaitDoDevices").html(data.data.ppWaitDoDevices)
+                        $("#ppNotDoDevices").html(data.data.ppNotDoDevices)
+                        $("#ppWorkingDevices").html(data.data.ppWorkingDevices)
                         // if (data.data.todayAlreadyExchangeIntegral!= null) {
                         //     $("#totalOnlineDevice").html(parseInt(data.data.todayAlreadyExchangeIntegral)+parseInt(data.data.todayAlreadyExchangeIntegral))
                         // }

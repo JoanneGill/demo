@@ -78,7 +78,7 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
     public AjaxResult getTask(@PathParam("cardNo") String cardNo, @PathParam("personName") String personName, @PathParam("time") String time,
                               @PathParam("deviceId") String deviceId, @PathParam("deviceNickName") String deviceNickName,
                               @PathParam("mid") String mid,@PathParam("roomId") String roomId,@PathParam("id") String id,
-                              @PathParam("taskType") String taskType,
+                              @PathParam("ppModel") String ppModel,
                                HttpServletRequest httpServletRequest){
 
         Long timeNow = System.currentTimeMillis();
@@ -143,9 +143,10 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
                 //更新状态时间
                 deviceDataList.get(i).setState(System.currentTimeMillis());
                 deviceDataList.get(i).setDeviceNickName(deviceNickName);
+                deviceDataList.get(i).setPpModel(ppModel);
                 deviceDataList.get(i).setPersonName(personName);
                 deviceDataList.get(i).setCardNo(cardNo);
-                deviceDataList.get(i).setIp( ipUtil.getIpAddr3(httpServletRequest));
+                deviceDataList.get(i).setIp(ipUtil.getIpAddr3(httpServletRequest));
                 deviceDataList.get(i).setHaveWorkTime(timeNow);
                 deviceDataList.get(i).setLastWorkingState(null);
                 //如果任务列表中查不到任务 执行清空设备当前任务
@@ -163,6 +164,7 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
             deviceData.setDeviceId(deviceId);
             deviceData.setDeviceNickName(deviceNickName);
             deviceData.setCardNo(cardNo);
+            deviceData.setPpModel(ppModel);
             deviceData.setPersonName(personName);
             deviceData.setState(System.currentTimeMillis());
             deviceData.setTodayTaskNumber(0);

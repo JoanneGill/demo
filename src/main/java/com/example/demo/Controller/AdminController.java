@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.example.demo.Config.ApplicationVariable.*;
+
 @Slf4j
 @RestController
 @RequestMapping("/admin")
@@ -198,28 +200,46 @@ public class AdminController {
     @Auth(user = "1000")
     @GetMapping("/welcomeInfo")
     public AjaxResult getwelcomeInfo(){
-       Long currentTime = System.currentTimeMillis();
+        Long currentTime = System.currentTimeMillis();
         //统计全部在线设备数量 和空闲设备数量
-            Integer workingDevices = 0;
-            Integer waitDevices =0;
-            Long  todayTotalIntegral = 0L;
-
+        Integer workingDevices = 0;
+        Integer waitDevices =0;
+        Long todayTotalIntegral = 0L;
+        int ppWaitDevices = 0;
+        int ppAllDoDevices = 0;
+        int ppWaitDoDevices = 0;
+        int ppNotDoDevices = 0;
+        int ppWorkingDevices = 0;
+        Long leastCurrentTime =   currentTime -1000*60;
         for (int i = 0; i < deviceDataListGlobe.size(); i++) {
             if (deviceDataListGlobe.get(i).getId()!=null  && !deviceDataListGlobe.get(i).getId().equals("0") && deviceDataListGlobe.get(i).getState()+1000*30 > currentTime && deviceDataListGlobe.get(i).getState().equals(deviceDataListGlobe.get(i).getLastWorkingState() ) ){
                 workingDevices++;
             }
-            else if (deviceDataListGlobe.get(i).getState()+1000*60 > currentTime){
+            else if (deviceDataListGlobe.get(i).getState() > leastCurrentTime){
                 waitDevices++;
+            }
+            if (deviceDataListGlobe.get(i).getPpClaimTime() >leastCurrentTime &&(deviceDataListGlobe.get(i).getPpClaimState()==null||deviceDataListGlobe.get(i).getPpClaimState().isEmpty())){
+                ppWaitDevices++;
+            }
+            if (deviceDataListGlobe.get(i).getPpClaimState()!=null&&deviceDataListGlobe.get(i).getPpClaimState().equals(PP_TASK_CLAIM_STATUS_CLAIMED)){
+                ppWorkingDevices++;
+            }
+            if (deviceDataListGlobe.get(i).getPpModel()!=null && deviceDataListGlobe.get(i).getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_ALL_DO)){
+                ppAllDoDevices++;
+            }
+            else if (deviceDataListGlobe.get(i).getPpModel()!=null && deviceDataListGlobe.get(i).getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_WAIT_DO)){
+                ppWaitDoDevices++;
+            }
+            else if (deviceDataListGlobe.get(i).getPpModel()!=null && deviceDataListGlobe.get(i).getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_NOT_DO)){
+                ppNotDoDevices++;
             }
         }
 
         //统计今日生成总积分
         for (int i = 0; i < userListGlobe.size(); i++) {
             todayTotalIntegral = todayTotalIntegral + userListGlobe.get(i).getTempIntegral();
-            log.info("userTempIntegral:{},{}",userListGlobe.get(i).getTempIntegral(),todayTotalIntegral);
         }
-          todayTotalIntegral= todayTotalIntegral+  userMapper.selectTodayAllIntegral();
-            log.info("AllUserTempIntegral:{}", todayTotalIntegral);
+        todayTotalIntegral= todayTotalIntegral+  userMapper.selectTodayAllIntegral();
 
         //今日待审核和已审核 积分统计
          HashMap<String, BigDecimal> hashMap = integralMapper.selectTodayExchangeAndAlreadExchangeIntegral();
@@ -228,6 +248,11 @@ public class AdminController {
          jsonObject.set("workingDevices",workingDevices);
          jsonObject.set("waitDevices",waitDevices);
          jsonObject.set("todayTotalIntegral",todayTotalIntegral);
+        jsonObject.set("ppWaitDevices",ppWaitDevices); //pp在线设备
+        jsonObject.set("ppAllDoDevices",ppAllDoDevices); //pp全部做设备
+        jsonObject.set("ppWaitDoDevices",ppWaitDoDevices); // pp等待做设备
+        jsonObject.set("ppNotDoDevices",ppNotDoDevices); // pp不做设备
+        jsonObject.set("ppWorkingDevices",ppWorkingDevices); //pp任务中设备
          if (hashMap != null){
              jsonObject.set("todayExchangeIntegral",hashMap.get("todayExchangeIntegral"));
              jsonObject.set("todayAlreadyExchangeIntegral",hashMap.get("todayAlreadyExchangeIntegral"));
@@ -236,8 +261,8 @@ public class AdminController {
          return AjaxResult.success(jsonObject);
         }
 
-       @Auth(user = "1000")
-       @PostMapping("/setUserTempIntegral")
+    @Auth(user = "1000")
+    @PostMapping("/setUserTempIntegral")
     public AjaxResult setUserTempIntegral(@RequestBody JSONObject jsonObject){
         Long  tempIntegral = jsonObject.getLong("tempIntegral");
         String cardNo = jsonObject.getStr("cardNo");

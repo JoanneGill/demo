@@ -35,7 +35,8 @@ public class ApplicationVariable {
     public static final String PP_TASK_CLAIM_STATUS_DONE = "done";  //超时
 
 
-
-
+    public static final String PP_TASK_DEVICE_PP_MODEL_ALL_DO = "allDo";   // 全部做
+    public static final String PP_TASK_DEVICE_PP_MODEL_WAIT_DO = "waitDo";   // 等待做
+    public static final String PP_TASK_DEVICE_PP_MODEL_NOT_DO = "notDo";   // 不做
 
 }

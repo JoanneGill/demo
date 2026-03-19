@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.example.demo.Config.ApplicationVariable.*;
 
@@ -50,14 +51,21 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     @Transactional
     public PpTaskClaim claimOne(String deviceId, String deviceNickName,String cardNo) {
         long now = System.currentTimeMillis();
-        for (DeviceData d : deviceList) {
-            if (deviceId.equals(d.getDeviceId())) {
-                d.setPpState(now);
-                break;
-            }
-        }
         PpTask task = ppTaskMapper.selectOneNotExecutedForUpdate(deviceId);
-        if (task == null) {return null;}
+        if (task == null) {
+            CompletableFuture.runAsync(() ->
+                    deviceList.stream()
+                            .filter(d -> deviceId.equals(d.getDeviceId()))
+                            .findFirst()
+                            .ifPresent(d -> d.setPpClaimTime(now)));
+            return null;}
+        else {
+            CompletableFuture.runAsync(() ->
+                    deviceList.stream()
+                            .filter(d -> deviceId.equals(d.getDeviceId()))
+                            .findFirst()
+                            .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(PP_TASK_CLAIM_STATUS_CLAIMED);}));
+        }
         PpTaskClaim claim = new PpTaskClaim();
         claim.setTaskId(task.getId());
         claim.setDeviceId(deviceId);
@@ -86,6 +94,12 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     @Override
     @Transactional
     public void finishSuccess(BigInteger claimId, String deviceId,String msg,Integer diamond) {
+        long now = System.currentTimeMillis();
+        CompletableFuture.runAsync(() ->
+                deviceList.stream()
+                        .filter(d -> deviceId.equals(d.getDeviceId()))
+                        .findFirst()
+                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null);}));
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
             if (claim == null) {
                 throw new IllegalArgumentException("Claim not found: " + claimId);
@@ -123,6 +137,12 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     @Override
     @Transactional
     public void finishFail(BigInteger claimId, String deviceId,String msg,Integer diamond) {
+        long now = System.currentTimeMillis();
+        CompletableFuture.runAsync(() ->
+                deviceList.stream()
+                        .filter(d -> deviceId.equals(d.getDeviceId()))
+                        .findFirst()
+                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null);}));
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
         if (claim == null) {
             throw new IllegalArgumentException("Claim not found: " + claimId);
