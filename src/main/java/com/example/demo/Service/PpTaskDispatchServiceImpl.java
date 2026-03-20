@@ -99,7 +99,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 deviceList.stream()
                         .filter(d -> deviceId.equals(d.getDeviceId()))
                         .findFirst()
-                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null);}));
+                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); d.setDiamond(diamond);}));
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
             if (claim == null) {
                 throw new IllegalArgumentException("Claim not found: " + claimId);
@@ -142,7 +142,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 deviceList.stream()
                         .filter(d -> deviceId.equals(d.getDeviceId()))
                         .findFirst()
-                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null);}));
+                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); if (diamond !=null){ d.setDiamond(diamond);}}));
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
         if (claim == null) {
             throw new IllegalArgumentException("Claim not found: " + claimId);

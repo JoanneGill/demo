@@ -60,7 +60,7 @@ public class AdminPpTaskController {
      * POST /admin/ppTask/add
      * Body: { "personAddress": "xxx", "number": 10, "integral": 5, "title": "xxx", "expireTime": "2026-03-11 00:00:00" }
      */
-
+    @Auth(user = "1000")
     @PostMapping("/add")
     public AjaxResult add(@RequestBody PpTask ppTask) {
         try {

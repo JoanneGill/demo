@@ -30,7 +30,8 @@
         {type: "checkbox" },
         {type: "numbers", title: "序号" },
         {field: 'deviceNickName', title: '设备编号', sort: true},
-        {field: 'personName', title: '抖音号', sort: true},
+        {field: 'personName', title: '抖音名称', sort: true},
+        {field: 'personUniqueId', title: '抖音号', sort: true},
         {field: 'state', title: '状态', sort: true, templet: function(d){
             if(new Date().getTime() - d.state < 1000*120 && new Date().getTime() - d.lastWorkingState <1000*30 ){
               return '<span style="color: green">任务中</span>';
@@ -40,6 +41,7 @@
               return '<span style="color: pink">离线</span>';
             }
           }},
+        {field: 'diamond', title: '最近一次钻石余额', sort: true},
         {field: 'todayTaskNumber', title: '今日领取任务数', sort: true},
         {field: 'todayTaskIntegral', title: '今日产生有效积分', sort: true},
         {field: 'ip', title: '登录ip地址', sort: true},

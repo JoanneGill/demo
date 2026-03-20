@@ -77,7 +77,8 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
     @GetMapping("/getTask")
     public AjaxResult getTask(@PathParam("cardNo") String cardNo, @PathParam("personName") String personName, @PathParam("time") String time,
                               @PathParam("deviceId") String deviceId, @PathParam("deviceNickName") String deviceNickName,
-                              @PathParam("mid") String mid,@PathParam("roomId") String roomId,@PathParam("id") String id,
+                              @PathParam("mid") String mid,@PathParam("id") String id,
+                              @PathParam("personUniqueId") String personUniqueId,
                               @PathParam("ppModel") String ppModel,
                                HttpServletRequest httpServletRequest){
 
@@ -146,6 +147,7 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
                 deviceDataList.get(i).setPpModel(ppModel);
                 deviceDataList.get(i).setPersonName(personName);
                 deviceDataList.get(i).setCardNo(cardNo);
+                deviceDataList.get(i).setPersonUniqueId(personUniqueId);
                 deviceDataList.get(i).setIp(ipUtil.getIpAddr3(httpServletRequest));
                 deviceDataList.get(i).setHaveWorkTime(timeNow);
                 deviceDataList.get(i).setLastWorkingState(null);
@@ -166,6 +168,7 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
             deviceData.setCardNo(cardNo);
             deviceData.setPpModel(ppModel);
             deviceData.setPersonName(personName);
+            deviceData.setPersonUniqueId(personUniqueId);
             deviceData.setState(System.currentTimeMillis());
             deviceData.setTodayTaskNumber(0);
             deviceData.setTodayTaskIntegral(0L);

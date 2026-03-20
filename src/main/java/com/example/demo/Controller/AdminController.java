@@ -248,11 +248,11 @@ public class AdminController {
          jsonObject.set("workingDevices",workingDevices);
          jsonObject.set("waitDevices",waitDevices);
          jsonObject.set("todayTotalIntegral",todayTotalIntegral);
-        jsonObject.set("ppWaitDevices",ppWaitDevices); //pp在线设备
-        jsonObject.set("ppAllDoDevices",ppAllDoDevices); //pp全部做设备
-        jsonObject.set("ppWaitDoDevices",ppWaitDoDevices); // pp等待做设备
-        jsonObject.set("ppNotDoDevices",ppNotDoDevices); // pp不做设备
-        jsonObject.set("ppWorkingDevices",ppWorkingDevices); //pp任务中设备
+         jsonObject.set("ppWaitDevices",ppWaitDevices); //pp在线设备
+         jsonObject.set("ppAllDoDevices",ppAllDoDevices); //pp全部做设备
+         jsonObject.set("ppWaitDoDevices",ppWaitDoDevices); // pp等待做设备
+         jsonObject.set("ppNotDoDevices",ppNotDoDevices); // pp不做设备
+         jsonObject.set("ppWorkingDevices",ppWorkingDevices); //pp任务中设备
          if (hashMap != null){
              jsonObject.set("todayExchangeIntegral",hashMap.get("todayExchangeIntegral"));
              jsonObject.set("todayAlreadyExchangeIntegral",hashMap.get("todayAlreadyExchangeIntegral"));

@@ -19,6 +19,8 @@ public class DeviceData {
     private Long ppClaimTime; //
     private String ppClaimState; //
     private String ppModel;
+    private Integer diamond;
+    private String personUniqueId;
     private Long haveWorkTime; // 领取任务 时间戳
     private Long startWorkingState;  // 最近开始任务时间戳
     private Long lastWorkingState;  // 最后确认任务时间戳
