@@ -118,15 +118,11 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
             if (marked == 0) {
                 throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
             }
+
         if (claim.getCardNo() != null && claim.getIntegral() != null && claim.getIntegral() > 0) {
-            User user = userMapper.selectMyInfoByCardNo(claim.getCardNo());
-            if (user != null) {
-                long current = user.getTempIntegral() != null ? user.getTempIntegral() : 0L;
-                long add = claim.getIntegral().longValue();
-                boolean ok = userMapper.changeTempIntegral(claim.getCardNo(), current + add);
-                if (!ok) {
-                    log.warn("finishSuccess add tempIntegral failed, cardNo={}, integral={}", claim.getCardNo(), add);
-                }
+            boolean ok = userMapper.addTempIntegral(claim.getCardNo(), claim.getIntegral());
+            if (!ok) {
+                log.error("finishSuccess add tempIntegral failed, cardNo={}, integral={}", claim.getCardNo(), claim.getCardNo());
             }
         }
             // 检查任务是否全部完成，若完成则归档

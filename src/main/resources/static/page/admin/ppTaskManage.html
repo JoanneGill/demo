@@ -308,6 +308,7 @@
                         if (isEdit) {
                             field.id = rowData.id;
                         }
+                        var loadIndex = layer.load(0);
                         $.ajax({
                             url: url,
                             data: JSON.stringify(field),
@@ -316,7 +317,6 @@
                             headers: {'Content-Type': 'application/json;charset=utf-8'},
                             success: function (res) {
                                 if (res.code === 200) {
-                                    layer.closeAll();
                                     layer.msg(isEdit ? '修改成功' : '新增成功', {icon: 1});
                                     renderTable();
                                 } else {
@@ -327,6 +327,7 @@
                                 layer.msg('操作失败', {icon: 2});
                             }
                         });
+                        layer.close(loadIndex)
                         return false;
                     });
                 }

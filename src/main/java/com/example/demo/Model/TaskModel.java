@@ -28,82 +28,14 @@ public class TaskModel {
 
 List<TaskData> taskDataListGlobal = GlobalVariablesSingleton.getInstance().getTaskDataArrayList();
 
-List<User> userListGlobal = GlobalVariablesSingleton.getInstance().getUsers();
 
-List<DeviceData> deviceDataListGlobal = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
-
-    public TaskData getBestTask(String cardNo,String deviceId){
-
-
-    for (int i =0; i<taskDataListGlobal.size();i++){
-        if (taskDataListGlobal.get(i).number> 0){
-            taskDataListGlobal.get(i).number=taskDataListGlobal.get(i).number-1;
-
-            return taskDataListGlobal.get(i);
-
-        }
-    }
-            return null;
-
-    }
-    /**
-     * 返回成功
-     * @param roomId
-     * @return boolean
-     * 安全删除任务的总方法入口
-     */
-    @Transactional
-    public Boolean deleteTaskByRoomId(String roomId) {
-        //持久化数据
-
-        //1 将有关任务的设备列表信息存入mysql
-
-        //这里使用线程安全的list
-
-        List<DeviceData> deviceDataList = new CopyOnWriteArrayList<>();
-       // 找出当前正在执行设备
-        GlobalVariablesSingleton.getInstance().getDeviceDataArrayList().stream().forEach(deviceData -> {
-            if (deviceData.getRoomId() != null && deviceData.getRoomId().equals(roomId)) {
-                deviceDataList.add(deviceData);
-            }
-        });
-
-        if (deviceDataList.size() !=0){
-            taskMapper.insertDeviceData(deviceDataList);
-        }
-
-        GlobalVariablesSingleton.getInstance().getDeviceDataArrayList().stream().forEach(deviceData -> {
-            if (deviceData.getRoomId() != null && deviceData.getRoomId().equals(roomId)) {
-               deviceData.setRoomId("0");
-            }
-        });
-
-        //2 将用户积分相关缓存存入Mysql   此处如果用户手机过多 高并发可能带来积分计算错误问题 概率低
-        if (updateUser()){
-        //3 任务列表存入历史任务  删除缓存任务缓存列表
-        List<TaskData> tasks = GlobalVariablesSingleton.getInstance().getTaskDataArrayList();
-        for (int i=tasks.size()-1;i>=0;i--){
-            if (roomId.equals(tasks.get(i).getRoomId())){
-
-                tasks.get(i).setRealDieTime(DateTime.now().toLocalDateTime().toString());
-
-                taskMapper.addTask(tasks.get(i));
-
-                tasks.remove(i);
-
-            }
-        }
-        }
-        return true;
-
-    }
 
     @Transactional
     public Boolean deleteTaskById(String id) {
 
         List<DeviceData> deviceDataList = new CopyOnWriteArrayList<>();
         // 找出当前正在执行设备
-        GlobalVariablesSingleton.getInstance().getDeviceDataArrayList().stream().forEach(deviceData -> {
+        GlobalVariablesSingleton.getInstance().getDeviceDataArrayList().forEach(deviceData -> {
             if (deviceData.getRoomId() != null && deviceData.getId().equals(id)) {
                 deviceDataList.add(deviceData);
             }
@@ -113,7 +45,7 @@ List<DeviceData> deviceDataListGlobal = GlobalVariablesSingleton.getInstance().g
             taskMapper.insertDeviceData(deviceDataList);
         }
 
-        GlobalVariablesSingleton.getInstance().getDeviceDataArrayList().stream().forEach(deviceData -> {
+        GlobalVariablesSingleton.getInstance().getDeviceDataArrayList().forEach(deviceData -> {
             if (deviceData.getId() != null && deviceData.getId().equals(id)) {
                 deviceData.setRoomId("0");
                 deviceData.setId("0");

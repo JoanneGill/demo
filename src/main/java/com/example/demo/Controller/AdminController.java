@@ -199,7 +199,7 @@ public class AdminController {
     }
     @Auth(user = "1000")
     @GetMapping("/welcomeInfo")
-    public AjaxResult getwelcomeInfo(){
+    public AjaxResult getWelcomeInfo(){
         Long currentTime = System.currentTimeMillis();
         //统计全部在线设备数量 和空闲设备数量
         Integer workingDevices = 0;
@@ -212,27 +212,31 @@ public class AdminController {
         int ppWorkingDevices = 0;
         Long leastCurrentTime =   currentTime -1000*60;
         for (int i = 0; i < deviceDataListGlobe.size(); i++) {
-            if (deviceDataListGlobe.get(i).getId()!=null  && !deviceDataListGlobe.get(i).getId().equals("0") && deviceDataListGlobe.get(i).getState()+1000*30 > currentTime && deviceDataListGlobe.get(i).getState().equals(deviceDataListGlobe.get(i).getLastWorkingState() ) ){
+            DeviceData deviceData = deviceDataListGlobe.get(i);
+            if (deviceData.getId()!=null  && !deviceData.getId().equals("0") && deviceData.getState()+1000*30 > currentTime && deviceData.getState().equals(deviceData.getLastWorkingState() ) ){
                 workingDevices++;
             }
-            else if (deviceDataListGlobe.get(i).getState() > leastCurrentTime){
+            else if (deviceData.getState() > leastCurrentTime){
                 waitDevices++;
             }
-            if (deviceDataListGlobe.get(i).getPpClaimTime() >leastCurrentTime &&(deviceDataListGlobe.get(i).getPpClaimState()==null||deviceDataListGlobe.get(i).getPpClaimState().isEmpty())){
-                ppWaitDevices++;
+            if (deviceData.getPpClaimState()!=null&&deviceData.getPpClaimTime()>leastCurrentTime){
+                if ((!StrUtil.isEmptyIfStr(deviceData.getPpClaimState())||deviceData.getPpClaimState().isEmpty())){
+                    ppWaitDevices++;
+                }
+                if (deviceData.getPpClaimState()!=null&&deviceData.getPpClaimState().equals(PP_TASK_CLAIM_STATUS_CLAIMED)){
+                    ppWorkingDevices++;
+                }
+                if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_ALL_DO)){
+                    ppAllDoDevices++;
+                }
+                else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_WAIT_DO)){
+                    ppWaitDoDevices++;
+                }
+                else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_NOT_DO)){
+                    ppNotDoDevices++;
+                }
             }
-            if (deviceDataListGlobe.get(i).getPpClaimState()!=null&&deviceDataListGlobe.get(i).getPpClaimState().equals(PP_TASK_CLAIM_STATUS_CLAIMED)){
-                ppWorkingDevices++;
-            }
-            if (deviceDataListGlobe.get(i).getPpModel()!=null && deviceDataListGlobe.get(i).getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_ALL_DO)){
-                ppAllDoDevices++;
-            }
-            else if (deviceDataListGlobe.get(i).getPpModel()!=null && deviceDataListGlobe.get(i).getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_WAIT_DO)){
-                ppWaitDoDevices++;
-            }
-            else if (deviceDataListGlobe.get(i).getPpModel()!=null && deviceDataListGlobe.get(i).getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_NOT_DO)){
-                ppNotDoDevices++;
-            }
+
         }
 
         //统计今日生成总积分

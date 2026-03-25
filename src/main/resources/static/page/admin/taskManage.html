@@ -293,6 +293,7 @@
                 },
                 error:function(data){
                     layer.msg('发布失败', {icon: 2});
+                    layui.close(loadIndex)
                 }
             })},
                 function(){

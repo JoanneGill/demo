@@ -17,4 +17,5 @@ public class CheckInfo {
    public String aseKey;
    public String videoYellow;
    public String mid2;
+   public String mid;
 }

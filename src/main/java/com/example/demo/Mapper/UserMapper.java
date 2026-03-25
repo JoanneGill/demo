@@ -45,6 +45,9 @@ public interface UserMapper {
     @Update({"update  user set tempIntegral= #{t} where cardNo=#{cardNo}"})
     boolean changeTempIntegral(@Param("cardNo") String cardNo,@Param("t") Long tempIntegral);
 
+    @Update({"update  user set tempIntegral= tempIntegral+#{t} where cardNo=#{cardNo}"})
+    boolean addTempIntegral(@Param("cardNo") String cardNo,@Param("addTempIntegral") Integer tempIntegral);
+
     @Update({"update  user set availableIntegral= #{t} where cardNo=#{cardNo}"})
     boolean changeIntegral(@Param("cardNo") String cardNo,@Param("t") Long tempIntegral);
 

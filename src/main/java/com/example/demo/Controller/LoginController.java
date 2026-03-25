@@ -156,7 +156,7 @@ IntegralModel integralModel;
         }
 
 
-         User user = userMapper.selectMyInfo(cardNo,password);
+        User user = userMapper.selectMyInfo(cardNo,password);
 
         if ( user == null ||  user.getState().equals(0) ){
 
