@@ -17,17 +17,20 @@
         <result column="status"           property="status"/>
         <result column="created_time"      property="createdTime"/>
         <result column="archived_time"    property="archivedTime"/>
+        <result column="yl_app_id"   property="ylAppId"/>
+        <result column="yl_good_id"   property="ylGoodId"/>
+        <result column="yl_order_id"   property="ylOrderId"/>
     </resultMap>
 
     <insert id="insertFromTask">
         INSERT INTO pp_task_history
             (id, room_address, room_id, total_number, completed_number,
              received_number, person_address, person_name, integral,
-             begin_time, completed_time, status, created_time, archived_time)
+             begin_time, completed_time, status, created_time, archived_time,yl_app_id, yl_good_id, yl_order_id)
         SELECT
             id, room_address, room_id, total_number, completed_number,
             received_number, person_address, person_name, integral,
-            begin_time, completed_time, status, created_time, NOW()
+            begin_time, completed_time, status, created_time, NOW(),yl_app_id, yl_good_id, yl_order_id
         FROM pp_task
         WHERE id = #{taskId}
     </insert>

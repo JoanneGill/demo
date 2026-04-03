@@ -92,7 +92,6 @@ public class AdminPpTaskController {
     @PostMapping("/delete")
     public AjaxResult delete(@RequestBody Map<String, Object> json) {
         List<BigInteger> ids = new ArrayList<>();
-        // 解析参数：支持 {"ids": [3,4]} 或 {"id": 3}
         if (json.containsKey("ids") && json.get("ids") instanceof List) {
             List<?> rawIds = (List<?>) json.get("ids");
             for (Object obj : rawIds) {

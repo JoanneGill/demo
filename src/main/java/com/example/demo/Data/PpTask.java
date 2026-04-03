@@ -58,4 +58,10 @@ public class PpTask {
     private Integer size;
 
     private Integer pageSize;
+
+    private String ylAppId;
+
+    private Integer ylGoodId;
+
+    private Integer ylOrderId;
 }

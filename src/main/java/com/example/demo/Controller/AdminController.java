@@ -157,45 +157,47 @@ public class AdminController {
         if (user.getState() == null){ user.setState(1);}
       List<User> users =  userMapper.selectUserList(user);
       Long currentTime =System.currentTimeMillis();
+      Long leastCurrentTime =   currentTime -1000*60;
     //从数据库取出的临时积分 加上缓存中用户的临时积分
         for (int i = 0; i < userListGlobe.size(); i++) {
-
-//            log.info("userList:{},userListSize:{}",userListGlobe.get(i),userListGlobe.size());
             for (int j = 0; j < users.size(); j++) {
                 if (userListGlobe.get(i).getCardNo().equals(users.get(j).getCardNo())){
                    users.get(j).setTempIntegral(users.get(j).getTempIntegral()+userListGlobe.get(i).getTempIntegral());
                 }
             }
         }
-
     //统计在线设备数量 和空闲设备数量
         for (int i = 0; i < users.size(); i++) {
             String cardNo = users.get(i).getCardNo();
             Integer workingDevices = 0;
             Integer waitDevices =0;
-
+            Integer ppWorkingDevices = 0;
+            Integer ppWaitDevices =0;
             for (int j = 0; j < deviceDataListGlobe.size(); j++) {
-
+                DeviceData deviceData = deviceDataListGlobe.get(j);
                 if (cardNo.equals(deviceDataListGlobe.get(j).getCardNo())){
-
                     if (deviceDataListGlobe.get(j).getState()+1000*30 > currentTime && deviceDataListGlobe.get(j).getState().equals(deviceDataListGlobe.get(j).getLastWorkingState() ) ){
-
                         workingDevices++;
-
                     }
-                    else if (deviceDataListGlobe.get(j).getState()+1000*60 > currentTime){
+                    else if (deviceDataListGlobe.get(j).getState() > leastCurrentTime){
                         waitDevices++;
+                    }
+                    if (deviceData.getPpClaimTime() !=null && deviceData.getPpClaimTime()>leastCurrentTime){
+                        if (( StrUtil.isEmptyIfStr(deviceData.getPpClaimState()) || deviceData.getPpClaimState().isEmpty())){
+                            ppWaitDevices++;
+                        }
+                        if (deviceData.getPpClaimState()!=null&&PP_TASK_CLAIM_STATUS_CLAIMED.equals(deviceData.getPpClaimState())){
+                            ppWorkingDevices++;
+                        }
                     }
                 }
             }
-
             users.get(i).setWaitDevices(waitDevices);
             users.get(i).setWorkingDevices(workingDevices);
+            users.get(i).setPpWaitDevices(ppWaitDevices);
+            users.get(i).setPpWorkingDevices(ppWorkingDevices);
         }
-
         return AjaxResult.success(users);
-
-
     }
     @Auth(user = "1000")
     @GetMapping("/welcomeInfo")
@@ -219,22 +221,22 @@ public class AdminController {
             else if (deviceData.getState() > leastCurrentTime){
                 waitDevices++;
             }
-            if (deviceData.getPpClaimState()!=null&&deviceData.getPpClaimTime()>leastCurrentTime){
-                if ((!StrUtil.isEmptyIfStr(deviceData.getPpClaimState())||deviceData.getPpClaimState().isEmpty())){
+            if (deviceData.getPpClaimTime() != null && deviceData.getPpClaimTime()>leastCurrentTime){
+                if ((StrUtil.isEmptyIfStr(deviceData.getPpClaimState())||deviceData.getPpClaimState().isEmpty())){
                     ppWaitDevices++;
                 }
-                if (deviceData.getPpClaimState()!=null&&deviceData.getPpClaimState().equals(PP_TASK_CLAIM_STATUS_CLAIMED)){
+                else if (deviceData.getPpClaimState().equals(PP_TASK_CLAIM_STATUS_CLAIMED)){
                     ppWorkingDevices++;
                 }
-                if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_ALL_DO)){
-                    ppAllDoDevices++;
-                }
-                else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_WAIT_DO)){
-                    ppWaitDoDevices++;
-                }
-                else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_NOT_DO)){
-                    ppNotDoDevices++;
-                }
+            }
+            if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_ALL_DO)){
+                ppAllDoDevices++;
+            }
+            else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_WAIT_DO)){
+                ppWaitDoDevices++;
+            }
+            else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_NOT_DO)){
+                ppNotDoDevices++;
             }
 
         }

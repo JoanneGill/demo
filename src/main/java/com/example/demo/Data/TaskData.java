@@ -66,6 +66,12 @@ public class TaskData {
 
     public List<DeviceData> deviceDataList;
 
+    private String ylAppId;
+
+    private Integer ylGoodId;
+
+    private Integer ylOrderId;
+
 
     public Long getCreatIntegral() {
         if(creatIntegral == null ){

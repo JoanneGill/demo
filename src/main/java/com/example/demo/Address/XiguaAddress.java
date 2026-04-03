@@ -336,7 +336,6 @@ public class XiguaAddress {
     public String getTaskInfoBySecUid(String sec_uid) {
         try {
             JsonArray jsonArray = getIpAndPortList();
-            System.out.println("sssssssssss"+ jsonArray.toString() +jsonArray.get(0).getAsString());
             int index = currentIndex.updateAndGet(i -> i % jsonArray.size());
             RestTemplate restTemplate = new RestTemplate();
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -346,7 +345,7 @@ public class XiguaAddress {
                 index = (index + 1) % jsonArray.size();
             }
             return null;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("getRoomIdByPersonAddress error {}", e.toString());
             return null;
         }

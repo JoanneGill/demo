@@ -31,6 +31,9 @@ public class User implements Serializable {
     private String  createdTime;
     private Integer workingDevices;
     private Integer waitDevices;
+    private Integer ppDevices;
+    private Integer ppWorkingDevices;
+    private Integer ppWaitDevices;
 
 
 }

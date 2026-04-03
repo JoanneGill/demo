@@ -97,6 +97,11 @@
           }},
         {field: 'workingDevices', title: '任务中设备数量', sort: true},
         {field: 'waitDevices', title: '空闲设备数量', sort: true},
+        {field: 'onlineDevices', title: 'pp在线设备数量', sort: true,templet: function(d){
+            return d.ppWaitDevices+d.ppWorkingDevices
+          }},
+        {field: 'ppWorkingDevices', title: 'pp任务中设备数量', sort: true},
+        {field: 'ppWaitDevices', title: 'pp空闲设备数量', sort: true},
         {field: 'tempIntegral', title: '今日已生成积分', sort: true},
         {field: 'availableIntegral', title: '有效积分', sort: true},
         {fixed: 'right',title: '提交核审积分', minWidth: 300, toolbar: '#currentTableBar', align: "center"}

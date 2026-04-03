@@ -31,10 +31,6 @@ public class GlobalVariablesSingleton {
 
     }
 
-
-
-
-
     public static GlobalVariablesSingleton getInstance() {
         return instance;
     }

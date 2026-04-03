@@ -19,9 +19,10 @@ public class PpTaskController {
     @GetMapping("/claim")
     public AjaxResult claim(@RequestParam String deviceId,
                             @RequestParam(required = false) String deviceNickName,
-                            @RequestParam(required = false) String cardNo) {
+                            @RequestParam(required = false) String cardNo,
+                            @RequestParam(required = false) String devicePersonName) {
         try {
-            PpTaskClaim claim = ppTaskDispatchService.claimOne(deviceId,deviceNickName,cardNo);
+            PpTaskClaim claim = ppTaskDispatchService.claimOne(deviceId,deviceNickName,cardNo,devicePersonName);
             return AjaxResult.success(claim);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
@@ -33,13 +34,14 @@ public class PpTaskController {
                              @RequestParam String deviceId,
                              @RequestParam Boolean success,
                              @RequestParam(required = false) String msg,
-                             @RequestParam(required = false) Integer diamond) {
+                             @RequestParam(required = false) Integer diamond,
+                             @RequestParam(required = false) Boolean videoDieOut) {
         try {
             if (Boolean.TRUE.equals(success)) {
                 ppTaskDispatchService.finishSuccess(claimId, deviceId,msg,diamond);
                 return AjaxResult.success("FINISH_SUCCESS");
             } else {
-                ppTaskDispatchService.finishFail(claimId, deviceId,msg,diamond);
+                ppTaskDispatchService.finishFail(claimId, deviceId,msg,diamond,videoDieOut);
                 return AjaxResult.success("FINISH_FAIL");
             }
         } catch (Exception e) {

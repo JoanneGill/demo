@@ -17,6 +17,8 @@ public class PpTaskClaim  {
     // 设备ID
     private String deviceId;
 
+    private String devicePersonName;
+
     private String cardNo;
 
     private Integer diamond; //所剩积分

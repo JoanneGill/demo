@@ -1,14 +1,19 @@
 package com.example.demo.Service;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.example.demo.Address.XiguaAddress;
+import com.example.demo.Config.YLApi;
 import com.example.demo.Data.*;
 import com.example.demo.Data.Vo.TaskArchiveEvent;
 import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.PpTaskMapper;
 import com.example.demo.Mapper.UserMapper;
+import com.google.common.cache.Cache;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,39 +22,53 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static com.example.demo.Config.ApplicationVariable.*;
+import static com.google.common.cache.CacheBuilder.newBuilder;
 
 @Slf4j
 @Service
 public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
-    @Autowired
+    @Resource
     private PpTaskMapper ppTaskMapper;
 
-    @Autowired
+    @Resource
     private PpTaskClaimMapper ppTaskClaimMapper;
 
-    @Autowired
+    @Resource
     private XiguaAddress xiguaAddress;
 
-    @Autowired
+    @Resource
     private ApplicationEventPublisher eventPublisher;
 
-    @Autowired
+    @Resource
     private UserMapper userMapper;
 
-    List<DeviceData> deviceList = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
+    @Resource
+    private PpTaskArchiveService ppTaskArchiveService;
 
+
+    List<DeviceData> deviceList = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
+    //在线设备对象列表
+    List<DeviceData> deviceDataListGlobe = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
     @Value("${pptask.leaseMinutes:10}")
     private int leaseMinutes;
 
+
+    final Cache<String, Integer> checkCache = newBuilder()
+                    .expireAfterWrite(30, TimeUnit.MINUTES)
+                    .build();
+
+
     @Override
     @Transactional
-    public PpTaskClaim claimOne(String deviceId, String deviceNickName,String cardNo) {
+    public PpTaskClaim claimOne(String deviceId, String deviceNickName,String cardNo,String devicePersonName) {
         long now = System.currentTimeMillis();
         PpTask task = ppTaskMapper.selectOneNotExecutedForUpdate(deviceId);
         if (task == null) {
@@ -80,6 +99,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         claim.setCardNo(cardNo);
         claim.setSec_uid(task.getSecUid());
         claim.setDeviceNickName(deviceNickName);
+        claim.setDevicePersonName(devicePersonName);
         log.info(claim.toString());
         long expireMs = System.currentTimeMillis() + (long) leaseMinutes * 60 * 1000;
         claim.setLeaseExpireTime(DateUtil.date(expireMs).toString());
@@ -132,7 +152,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
 
     @Override
     @Transactional
-    public void finishFail(BigInteger claimId, String deviceId,String msg,Integer diamond) {
+    public void finishFail(BigInteger claimId, String deviceId,String msg,Integer diamond,Boolean videoDieOut ) {
         long now = System.currentTimeMillis();
         CompletableFuture.runAsync(() ->
                 deviceList.stream()
@@ -156,6 +176,13 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         int marked = ppTaskClaimMapper.markFailed(claimId,msg);
         if (marked == 0) {
             throw new IllegalStateException("Failed to mark claim as FINISHED (already expired or wrong status): " + claimId);
+        }
+        if (videoDieOut != null && videoDieOut) {
+            checkCache.asMap().merge(String.valueOf(claim.getTaskId()),1, Integer::sum);
+            //删除任务 直播结束
+            if (checkCache.getIfPresent(String.valueOf(claim.getTaskId())) != null && checkCache.getIfPresent(String.valueOf(claim.getTaskId())) > 10){
+                ppTaskArchiveService.moveTasksToHistory(new ArrayList<>(List.of(claim.getTaskId())));
+            }
         }
     }
 
@@ -209,49 +236,50 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
      * @param ppTask 前端传入的任务信息
      * @return 插入后带自增 id 的 PpTask（成功时），或抛异常
      */
+    @Override
     @Transactional
     public PpTask addPpTask(PpTask ppTask) {
 
         // ========== 1. 参数校验 ==========
         if (ppTask.getTotalNumber() == null || ppTask.getTotalNumber() <= 0) {
-            throw new IllegalArgumentException("任务数量必须大于0");
+            throw new BusinessException(404,"任务数量必须大于0");
         }
 
         if (ppTask.getIntegral() == null || ppTask.getIntegral() <= 0) {
-            throw new IllegalArgumentException("积分必须大于0");
+            throw new BusinessException(404,"积分必须大于0");
         }
 
         if (ppTask.getPersonAddress() == null || ppTask.getPersonAddress().isBlank()) {
-            throw new IllegalArgumentException("主播个人主页地址不能为空");
+            throw new BusinessException(404,"主播个人主页地址不能为空");
         }
 
         // ========== 2. 解析直播间信息 ==========
         String secUid = xiguaAddress.getsecuidBypersonAddress(ppTask.getPersonAddress());
         if (secUid == null || secUid.isBlank()) {
-            throw new IllegalArgumentException("个人地址解析错误");
+            throw new BusinessException(404,"个人地址解析错误");
         }
 
         String taskInfoJson = xiguaAddress.getTaskInfoBySecUid(secUid);
         if (taskInfoJson == null || taskInfoJson.isBlank()) {
-            throw new IllegalArgumentException("获取任务信息失败");
+            throw new BusinessException(404,"获取任务信息失败");
         }
 
         JsonObject jsonElement = JsonParser.parseString(taskInfoJson).getAsJsonObject();
         String roomId = jsonElement.get("roomId").getAsString();
         if (roomId == null || roomId.isBlank()) {
-            throw new IllegalArgumentException("直播间地址解析错误");
+            throw new BusinessException(404,"直播间地址解析错误");
         }
 
         // ========== 3. 检查小黄车/连线 ==========
         String yellowish = xiguaAddress.getYellowish(roomId);
         if ("yellow".equals(yellowish)) {
-            throw new IllegalArgumentException("禁止小黄车直播间");
+            throw new BusinessException(404, "禁止小黄车");
         }
 
         // ========== 4. 获取主播名 ==========
         String personName = xiguaAddress.getXiGuaName(roomId);
         if (personName == null || personName.isBlank()) {
-            throw new IllegalArgumentException("主播名字解析错误");
+            throw new BusinessException(404,"主播名字解析错误");
         }
 
         // ========== 5. 组装数据并入库 ==========
@@ -271,6 +299,29 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         return ppTask;
     }
 
+
+
+    @Override
+    public Integer waitDevices(){
+        long currentTime = System.currentTimeMillis();
+        int waitDevices = 0;
+        List<DeviceData> list = deviceDataListGlobe;
+        if (list == null || list.isEmpty()) {
+            return 0;
+        }
+        for (DeviceData d : list) {
+            if (d == null) continue;
+            Long claimTime = d.getPpClaimTime();
+            if (claimTime == null) continue;
+            String state = d.getPpClaimState();
+            if (claimTime + 1000L * 60 > currentTime &&
+                    (StrUtil.isEmptyIfStr(state) || state.isEmpty())) {
+                waitDevices++;
+            }
+        }
+        return waitDevices;
+
+    }
 
 
 }

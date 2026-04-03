@@ -14,6 +14,9 @@
         <result column="begin_time"       property="beginTime"/>
         <result column="completed_time"   property="completedTime"/>
         <result column="created_time"   property="createdTime"/>
+        <result column="yl_app_id"   property="ylAppId"/>
+        <result column="yl_good_id"   property="ylGoodId"/>
+        <result column="yl_order_id"   property="ylOrderId"/>
     </resultMap>
 
     <!-- Note: PpTaskResultMap above is for the pp_task (robot-flow) table. The admin pptask
@@ -55,9 +58,9 @@
 
     <insert id="insertPpTask" parameterType="com.example.demo.Data.PpTask" useGeneratedKeys="true" keyProperty="pt.id">
         insert into pp_task (room_id, person_name, person_address, total_number,
-                             completed_number, received_number, integral, status, begin_time,created_time)
+                             completed_number, received_number, integral, status, begin_time,created_time,yl_app_id, yl_good_id, yl_order_id)
         values (#{pt.roomId}, #{pt.personName}, #{pt.personAddress}, #{pt.totalNumber},
-                0, 0, #{pt.integral}, #{pt.status}, #{pt.beginTime}, now())
+                0, 0, #{pt.integral}, #{pt.status}, #{pt.beginTime}, now(), #{pt.ylAppId}, #{pt.ylGoodId}, #{pt.ylOrderId})
     </insert>
     <update id="updatePpTask" parameterType="com.example.demo.Data.PpTask">
         update pp_task

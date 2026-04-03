@@ -74,6 +74,34 @@
                                             <div class="panel layui-bg-number">
                                                 <div class="panel-body">
                                                     <div class="panel-title">
+                                                        <h5>PP在线设备数</h5>
+                                                    </div>
+                                                    <div class="panel-content">
+                                                        <h1 class="no-margins" id="ppWaitDevices">0</h1>
+                                                        <small>PP当前在线设备数量</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="layui-col-xs4">
+                                            <div class="panel layui-bg-number">
+                                                <div class="panel-body">
+                                                    <div class="panel-title">
+                                                        <h5>PP任务中设备数</h5>
+                                                    </div>
+                                                    <div class="panel-content">
+                                                        <h1 class="no-margins" id="ppWorkingDevices">0</h1>
+                                                        <small>PP当前任务中设备数</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="layui-col-xs4">
+                                            <div class="panel layui-bg-number">
+                                                <div class="panel-body">
+                                                    <div class="panel-title">
                                                         <!--                                                        <span class="label pull-right layui-bg-orange">实时</span>-->
                                                         <h5>设备总数</h5>
                                                     </div>
@@ -186,11 +214,12 @@
 </script>
 <script>
     console.log(new Date().getTime())
-    layui.use(['form', 'table','miniPage','element'], function () {
+    layui.use(['form', 'table','miniPage','element','layer'], function () {
         var $ = layui.jquery,
             form = layui.form,
             table = layui.table,
-            miniPage = layui.miniPage;
+            miniPage = layui.miniPage,
+            layer = layui.layer;
 
         table.render({
             elem: '#currentTableId',
@@ -205,10 +234,13 @@
                 let outWorkDevices =0;
                 let onLineDevices = 0;
                 let todayTotalTaskIntegral = 0
+                let ppWaitDevices = 0;     // pp在线设备数
+                let ppWorkingDevices = 0;  // pp任务中设备数
                 let timeNow = new Date().getTime()
+                let leastCurrentTime = timeNow - 1000 * 100; // 当前时间 - 60s
 
                 for (let i = 0; i < res.data.length; i++) {
-                    if(timeNow - res.data[i].state < 1000*100 && timeNow - res.data[i].lastWorkingState <1000*20 ){
+                    if(leastCurrentTime< res.data[i].state&& timeNow - res.data[i].lastWorkingState <1000*20 ){
                         workingDevices++;
                     } else if (timeNow - res.data[i].state < 1000*100) {
                         waitDevices++;
@@ -218,17 +250,30 @@
                     }
                     todayTotalTaskIntegral += res.data[i].todayTaskIntegral
 
+                    // PP任务统计（口径同 AdminController#welcomeInfo）
+                    // pp在线：ppClaimState != null && ppClaimTime > leastCurrentTime
+                    // pp任务中：ppClaimState == 'claimed'
+                    if (res.data[i].ppClaimState != null
+                        && res.data[i].ppClaimTime != null
+                        && Number(res.data[i].ppClaimTime) > leastCurrentTime) {
+                        ppWaitDevices++;
+                        if (res.data[i].ppClaimState === 'claimed') {
+                            ppWorkingDevices++;
+                        }
+                    }
                 }
 
 
 
+                // 顶部统计：基于当前用户设备列表计算
                 $("#workingDevices").html(workingDevices)
                 $("#totalDevices").html(totalDevices)
                 $("#waitDevices").html(waitDevices)
                 $("#totalOnlineDevice").html((workingDevices+waitDevices))
                 $("#outWorkDevices").html(outWorkDevices)
                 $("#todayTotalTaskIntegral").html(todayTotalTaskIntegral)
-                    // console.log(data.data.workingDevices+data.data.waitDevices)
+                $("#ppWaitDevices").html(ppWaitDevices)
+                $("#ppWorkingDevices").html(ppWorkingDevices)
 
                 // $("#todayTotalIntegral").html(data.data.todayTotalIntegral)
                 // $("#todayExchangeIntegral").html(data.data.todayExchangeIntegral)

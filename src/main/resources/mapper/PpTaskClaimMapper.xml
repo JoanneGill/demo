@@ -16,8 +16,9 @@
         <result column="integral"          property="integral"/>
         <result column="begin_time"        property="beginTime"/>
         <result column="completed_time"    property="completedTime"/>
-        <result column="cardNo"            property="card_no"/>
+        <result column="card_no"            property="cardNo"/>
         <result column="diamond"            property="diamond"/>
+        <result column="device_person_name" property="devicePersonName"/>
     </resultMap>
 
     <insert id="insert"
@@ -40,6 +41,7 @@
             <if test="completedTime != null">completed_time,</if>
             <if test="cardNo != null">card_no,</if>
             <if test="diamond != null">diamond</if>
+            <if test="devicePersonName != null">device_person_name</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="taskId != null">#{taskId},</if>
@@ -56,6 +58,7 @@
             <if test="completedTime != null">#{completedTime},</if>
             <if test="cardNo != null">#{cardNo},</if>
             <if test="diamond != null">#{diamond},</if>
+            <if test="devicePersonName != null">#{devicePersonName}</if>
         </trim>
     </insert>
 

@@ -409,7 +409,7 @@
                         cols: [[
                             {field: 'id', title: 'ID', width: 80},
                             {field: 'deviceId', title: '设备ID'},
-                            {field: 'deviceNickName', title: '设备昵称'},
+                            {field: 'devicePersonName', title: '设备账号昵称'},
                             {field: 'status', title: '状态', width: 100, templet: function (d) {
                                     var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
                                     var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
@@ -418,7 +418,6 @@
                                     return '<span style="color:' + c + '">' + l + '</span>';
                                 }},
                             {field: 'msg', title: '完成信息', sort: true},
-                            {field: 'diamond', title: '剩余钻石', sort: true},
                             {field: 'beginTime', title: '开始时间'},
                             {field: 'completedTime', title: '完成时间'},
                             {title: '操作', width: 200, templet: function (d) {
