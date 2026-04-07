@@ -6,6 +6,7 @@ import com.example.demo.common.DyTaskType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -49,6 +50,14 @@ public final class YlGoodsConfig {
 
     public String getDyPool() {
         return dyPool;
+    }
+
+    public BigDecimal[] getHourlyPrices() {
+        return hourlyPrices != null ? Arrays.copyOf(hourlyPrices, hourlyPrices.length) : new BigDecimal[HOURS];
+    }
+
+    public BigDecimal[] getHourlyIntegrals() {
+        return hourlyIntegrals != null ? Arrays.copyOf(hourlyIntegrals, hourlyIntegrals.length) : new BigDecimal[HOURS];
     }
 
     public DyTaskType getDyTaskType() {

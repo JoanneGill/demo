@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -119,7 +120,8 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 deviceList.stream()
                         .filter(d -> deviceId.equals(d.getDeviceId()))
                         .findFirst()
-                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); d.setDiamond(diamond);}));
+                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); d.setDiamond(diamond);
+                            d.setTodayPpTaskNumberSuccess(Objects.requireNonNullElse(d.getTodayPpTaskNumberSuccess(), 0) + 1);;}));
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
             if (claim == null) {
                 throw new IllegalArgumentException("Claim not found: " + claimId);
@@ -158,7 +160,8 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 deviceList.stream()
                         .filter(d -> deviceId.equals(d.getDeviceId()))
                         .findFirst()
-                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); if (diamond !=null){ d.setDiamond(diamond);}}));
+                        .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); if (diamond !=null){ d.setDiamond(diamond);}
+                            d.setTodayPpTaskNumberFail(Objects.requireNonNullElse(d.getTodayPpTaskNumberFail(),0)+1);}));
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
         if (claim == null) {
             throw new IllegalArgumentException("Claim not found: " + claimId);

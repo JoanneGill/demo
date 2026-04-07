@@ -1,17 +1,12 @@
-package com.example.demo.common;
+package com.example.demo.Job;
 
 
-import cn.hutool.Hutool;
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.example.demo.Address.XiguaAddress;
-import com.example.demo.Config.AjaxResult;
 import com.example.demo.Data.DeviceData;
 import com.example.demo.Data.GlobalVariablesSingleton;
 import com.example.demo.Data.TaskData;
@@ -23,10 +18,8 @@ import com.example.demo.Model.DevicesModel;
 import com.example.demo.Model.TaskModel;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -230,6 +223,8 @@ public class DynamicScheduleTask  {
     //清除每日设备领取任务数
         for (int i = deviceDataListGlobe.size() -1; i >=0; i--) {
             deviceDataListGlobe.get(i).setTodayTaskIntegral(0L);
+            deviceDataListGlobe.get(i).setTodayPpTaskNumberSuccess(0);
+            deviceDataListGlobe.get(i).setTodayPpTaskNumberFail(0);
             deviceDataListGlobe.get(i).setTodayTaskNumber(0);
             //清除过久没登录的设备
             if (deviceDataListGlobe.get(i).getState()+24*3600*1000<now){

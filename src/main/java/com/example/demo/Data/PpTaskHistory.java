@@ -50,10 +50,17 @@ public class PpTaskHistory {
     // 归档时间
     private Date archivedTime;
 
+    private String ylAppId;
+
+    private Integer ylGoodId;
+
+    private Integer ylOrderId;
+
     // 分页参数
     private Integer page;
 
     private Integer size;
 
     private Integer pageSize;
+
 }

@@ -19,6 +19,8 @@ public class DeviceData {
     private Long ppClaimTime; //
     private String ppClaimState; //
     private String ppModel;
+    private Integer todayPpTaskNumberSuccess; // 今日pp任务数量成功
+    private Integer todayPpTaskNumberFail; // 今日pp任务数量失败
     private Integer diamond;
     private Integer ppTimes;
     private String personUniqueId;

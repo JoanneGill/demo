@@ -10,6 +10,8 @@ import com.example.demo.Config.ApplicationVariable;
 import com.example.demo.Config.Auth;
 import com.example.demo.Data.*;
 import com.example.demo.Mapper.IntegralMapper;
+import com.example.demo.Mapper.PpTaskClaimHistoryMapper;
+import com.example.demo.Mapper.PpTaskClaimMapper;
 import com.example.demo.Mapper.UserMapper;
 import com.example.demo.Model.DevicesModel;
 import com.example.demo.Model.IntegralModel;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +50,8 @@ public class AdminController {
     DevicesModel devicesModel;
     @Autowired
     UserModel userModel;
+    @Autowired
+    PpTaskClaimHistoryMapper ppTaskClaimHistoryMapper;
 
     //在线任务列表
     List<TaskData> taskDataListGlobe = GlobalVariablesSingleton.getInstance().getTaskDataArrayList();
@@ -196,6 +201,9 @@ public class AdminController {
             users.get(i).setWorkingDevices(workingDevices);
             users.get(i).setPpWaitDevices(ppWaitDevices);
             users.get(i).setPpWorkingDevices(ppWorkingDevices);
+            Date todaySql = java.sql.Date.valueOf(java.time.LocalDate.now());
+            users.get(i).setPpNumberSuccess(ppTaskClaimHistoryMapper.countSuccessByDate(cardNo,todaySql));
+            users.get(i).setPpNumberFail(ppTaskClaimHistoryMapper.countFailureByDate(cardNo,todaySql));
         }
         return AjaxResult.success(users);
     }

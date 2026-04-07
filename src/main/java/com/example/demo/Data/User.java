@@ -34,6 +34,9 @@ public class User implements Serializable {
     private Integer ppDevices;
     private Integer ppWorkingDevices;
     private Integer ppWaitDevices;
+    private Integer ppNumberSuccess;
+    private Integer ppNumberFail;
+    private Integer ppNumberTotal;
 
 
 }

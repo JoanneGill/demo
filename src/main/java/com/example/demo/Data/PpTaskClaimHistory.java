@@ -49,4 +49,8 @@ public class PpTaskClaimHistory {
 
     // 归档时间
     private Date archivedTime;
+
+    private String cardNo;
+
+    private String devicePersonName;
 }
