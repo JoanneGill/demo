@@ -1,0 +1,520 @@
+<div class="layuimini-container layuimini-page-anim">
+  <div class="layuimini-main">
+    <fieldset class="table-search-fieldset">
+      <legend>ly 配置管理</legend>
+      <div style="margin: 10px 10px 10px 10px">
+        <form class="layui-form layui-form-pane" lay-filter="lyConfigForm">
+          <div class="layui-form-item">
+            <div class="layui-inline">
+              <button type="button" class="layui-btn layui-btn-normal" id="btnAddTarget">
+                新增商城
+              </button>
+              <button type="button" class="layui-btn layui-btn-danger" id="btnDeleteTarget">
+                删除选中商城
+              </button>
+              <button type="button" class="layui-btn" id="btnAddGoods">
+                新增商品
+              </button>
+              <button type="button" class="layui-btn layui-btn-danger" id="btnDeleteGoods">
+                删除选中商品
+              </button>
+              <button type="button" class="layui-btn layui-btn-normal" id="btnSaveAll">
+                保存全部
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </fieldset>
+
+    <div class="layui-row layui-col-space10">
+      <div class="layui-col-md5">
+        <fieldset class="table-search-fieldset">
+          <legend>商城列表（ylConfig）</legend>
+        </fieldset>
+        <table class="layui-hide" id="targetTable" lay-filter="targetTableFilter"></table>
+      </div>
+      <div class="layui-col-md7">
+        <fieldset class="table-search-fieldset">
+          <legend>商品列表（goods）</legend>
+          <div style="margin-left: 10px;">
+            <span id="currentTargetLabel" style="color: #666;">当前未选择商城</span>
+          </div>
+        </fieldset>
+        <table class="layui-hide" id="goodsTable" lay-filter="goodsTableFilter"></table>
+      </div>
+    </div>
+
+    <script type="text/html" id="targetTableBar">
+      <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    </script>
+    <script type="text/html" id="goodsTableBar">
+      <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+      <a class="layui-btn layui-btn-xs" lay-event="editHourly">24小时价格/积分</a>
+    </script>
+  </div>
+</div>
+
+<script>
+layui.use(['table', 'form', 'layer', 'laydate'], function () {
+  var table = layui.table,
+      form = layui.form,
+      layer = layui.layer,
+      laydate = layui.laydate,
+      $ = layui.$;
+
+  // 内存中的配置：[{ key, address, appId, appSecret, goods: [{id, dyPool, hourlyPrices, hourlyIntegrals}] }]
+  var targets = [];
+  var currentTargetIndex = -1;
+
+  function renderTargetTable() {
+    table.render({
+      elem: '#targetTable',
+      data: targets,
+      id: 'targetTableId',
+      page: false,
+      cols: [[
+        {type: "radio", width: 50},
+        {field: 'key', title: 'key', width: 130},
+        {field: 'address', title: 'address'},
+        {field: 'appId', title: 'appId'},
+        {toolbar: '#targetTableBar', title: '操作', width: 120, align: 'center'}
+      ]]
+    });
+  }
+
+  function renderGoodsTable() {
+    var goods = [];
+    if (currentTargetIndex >= 0 && currentTargetIndex < targets.length) {
+      goods = targets[currentTargetIndex].goods || [];
+      $('#currentTargetLabel').text('当前商城：' + (targets[currentTargetIndex].key || '(未命名)'));
+    } else {
+      $('#currentTargetLabel').text('当前未选择商城');
+    }
+
+    table.render({
+      elem: '#goodsTable',
+      data: goods,
+      id: 'goodsTableId',
+      page: false,
+      cols: [[
+        {type: "radio", width: 50},
+        {field: 'id', title: '商品ID', width: 90},
+        {field: 'dyPool', title: 'dyPool', width: 80, templet: function (d) {
+          return d.dyPool || 'rq';
+        }},
+        {field: 'hasPrice', title: '有价格', width: 80, templet: function (d) {
+          var arr = d.hourlyPrices || [];
+          var has = arr.some(function (v) { return v !== null && v !== '' && v !== undefined; });
+          return has ? '<span style="color: green;">是</span>' : '<span style="color: #999;">否</span>';
+        }},
+        {field: 'hasIntegral', title: '有积分', width: 80, templet: function (d) {
+          var arr = d.hourlyIntegrals || [];
+          var has = arr.some(function (v) { return v !== null && v !== '' && v !== undefined; });
+          return has ? '<span style="color: green;">是</span>' : '<span style="color: #999;">否</span>';
+        }},
+        {toolbar: '#goodsTableBar', title: '操作', minWidth: 200, align: 'center'}
+      ]]
+    });
+  }
+
+  function loadConfig() {
+    $.ajax({
+      url: '/admin/lyConfig/list',
+      type: 'get',
+      dataType: 'json',
+      success: function (res) {
+        if (res.code !== 200) {
+          layer.msg(res.msg || '加载失败', {icon: 2});
+          return;
+        }
+        targets = res.data || [];
+        currentTargetIndex = targets.length > 0 ? 0 : -1;
+        renderTargetTable();
+        renderGoodsTable();
+      },
+      error: function () {
+        layer.msg('加载失败', {icon: 2});
+      }
+    });
+  }
+
+  $('#btnAddTarget').on('click', function () {
+    layer.open({
+      type: 1,
+      title: '新增商城',
+      area: ['480px', 'auto'],
+      shadeClose: true,
+      content:
+        '<div class="layui-form" style="margin: 20px;" lay-filter="targetEditForm">' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">key</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="key" required lay-verify="required" autocomplete="off" class="layui-input">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">address</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="address" required lay-verify="required" autocomplete="off" class="layui-input">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">appId</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="appId" required lay-verify="required" autocomplete="off" class="layui-input">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">appSecret</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="appSecret" required lay-verify="required" autocomplete="off" class="layui-input">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <div class="layui-input-block">' +
+        '      <button class="layui-btn" lay-submit lay-filter="targetEditSubmit">确 定</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>',
+      success: function (layero, index) {
+        form.render();
+        form.on('submit(targetEditSubmit)', function (data) {
+          var field = data.field;
+          targets.push({
+            key: field.key,
+            address: field.address,
+            appId: field.appId,
+            appSecret: field.appSecret,
+            goods: []
+          });
+          currentTargetIndex = targets.length - 1;
+          renderTargetTable();
+          renderGoodsTable();
+          layer.close(index);
+          return false;
+        });
+      }
+    });
+  });
+
+  $('#btnDeleteTarget').on('click', function () {
+    var checkStatus = table.checkStatus('targetTableId');
+    var data = checkStatus.data;
+    if (!data || data.length === 0) {
+      layer.msg('请先选择一个商城行（左表单选）', {icon: 2});
+      return;
+    }
+    var key = data[0].key;
+    layer.confirm('确认删除商城 [' + key + '] 及其下所有商品？', {icon: 3}, function (i) {
+      targets = targets.filter(function (t) { return t.key !== key; });
+      currentTargetIndex = targets.length > 0 ? 0 : -1;
+      renderTargetTable();
+      renderGoodsTable();
+      layer.close(i);
+    });
+  });
+
+  $('#btnAddGoods').on('click', function () {
+    if (currentTargetIndex < 0 || currentTargetIndex >= targets.length) {
+      layer.msg('请先在左侧选择一个商城', {icon: 2});
+      return;
+    }
+    openGoodsEditDialog(null);
+  });
+
+  $('#btnDeleteGoods').on('click', function () {
+    if (currentTargetIndex < 0 || currentTargetIndex >= targets.length) {
+      layer.msg('请先在左侧选择一个商城', {icon: 2});
+      return;
+    }
+    var checkStatus = table.checkStatus('goodsTableId');
+    var list = checkStatus.data || [];
+    if (list.length === 0) {
+      layer.msg('请先选择要删除的商品', {icon: 2});
+      return;
+    }
+    var id = list[0].id;
+    layer.confirm('确认删除选中商品（ID：' + id + '）？', {icon: 3}, function (i) {
+      var goods = targets[currentTargetIndex].goods || [];
+      goods = goods.filter(function (g) {
+        return String(g.id) !== String(id);
+      });
+      targets[currentTargetIndex].goods = goods;
+      renderGoodsTable();
+      layer.close(i);
+    });
+  });
+
+  $('#btnSaveAll').on('click', function () {
+    if (!targets || targets.length === 0) {
+      layer.confirm('当前配置为空，确认保存为空？', {icon: 3}, function (idx) {
+        doSaveAll();
+        layer.close(idx);
+      });
+      return;
+    }
+    doSaveAll();
+  });
+
+  function doSaveAll() {
+    var loadIndex = layer.load(0);
+    $.ajax({
+      url: '/admin/lyConfig/save',
+      type: 'post',
+      dataType: 'json',
+      data: JSON.stringify(targets),
+      headers: {'Content-Type': 'application/json;charset=utf-8'},
+      success: function (res) {
+        layer.close(loadIndex);
+        if (res.code === 200) {
+          layer.msg('保存成功', {icon: 1});
+          loadConfig();
+        } else {
+          layer.msg(res.msg || '保存失败', {icon: 2});
+        }
+      },
+      error: function () {
+        layer.close(loadIndex);
+        layer.msg('保存失败', {icon: 2});
+      }
+    });
+  }
+
+  table.on('row(targetTableFilter)', function (obj) {
+    var data = obj.data;
+    // 点击行时同步选中 radio（否则只高亮不切换单选按钮）
+    if (obj && typeof obj.setChecked === 'function') {
+      obj.setChecked({type: 'radio'});
+    }
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i].key === data.key) {
+        currentTargetIndex = i;
+        break;
+      }
+    }
+    obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+    renderGoodsTable();
+  });
+
+  table.on('tool(targetTableFilter)', function (obj) {
+    var data = obj.data;
+    if (obj.event === 'edit') {
+      var idx = targets.findIndex(function (t) { return t.key === data.key; });
+      if (idx < 0) return;
+      openTargetEditDialog(idx);
+    }
+  });
+
+  table.on('tool(goodsTableFilter)', function (obj) {
+    var data = obj.data;
+    if (obj.event === 'edit') {
+      var ref = getCurrentGoodsRef(data && data.id);
+      openGoodsEditDialog(ref);
+    } else if (obj.event === 'editHourly') {
+      var ref2 = getCurrentGoodsRef(data && data.id);
+      openHourlyEditDialog(ref2);
+    }
+  });
+
+  function getCurrentGoodsRef(goodsId) {
+    if (currentTargetIndex < 0 || currentTargetIndex >= targets.length) {
+      return null;
+    }
+    var goods = targets[currentTargetIndex].goods || [];
+    for (var i = 0; i < goods.length; i++) {
+      if (String(goods[i].id) === String(goodsId)) {
+        return goods[i];
+      }
+    }
+    return null;
+  }
+
+  function parseNumberOrNull(v) {
+    if (v === '' || v == null) return null;
+    var s = String(v).trim();
+    if (s === '') return null;
+    var n = Number(s);
+    if (isNaN(n)) return null;
+    return n;
+  }
+
+  function openTargetEditDialog(index) {
+    var t = targets[index];
+    layer.open({
+      type: 1,
+      title: '编辑商城',
+      area: ['480px', 'auto'],
+      shadeClose: true,
+      content:
+        '<div class="layui-form" style="margin: 20px;" lay-filter="targetEditForm">' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">key</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="key" required lay-verify="required" autocomplete="off" class="layui-input" value="' + (t.key || '') + '">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">address</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="address" required lay-verify="required" autocomplete="off" class="layui-input" value="' + (t.address || '') + '">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">appId</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="appId" required lay-verify="required" autocomplete="off" class="layui-input" value="' + (t.appId || '') + '">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">appSecret</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="appSecret" required lay-verify="required" autocomplete="off" class="layui-input" value="' + (t.appSecret || '') + '">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <div class="layui-input-block">' +
+        '      <button class="layui-btn" lay-submit lay-filter="targetEditSubmit">确 定</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>',
+      success: function (layero, indexLayer) {
+        form.render();
+        form.on('submit(targetEditSubmit)', function (dataForm) {
+          var f = dataForm.field;
+          t.key = f.key;
+          t.address = f.address;
+          t.appId = f.appId;
+          t.appSecret = f.appSecret;
+          renderTargetTable();
+          renderGoodsTable();
+          layer.close(indexLayer);
+          return false;
+        });
+      }
+    });
+  }
+
+  function openGoodsEditDialog(goodsRow) {
+    if (currentTargetIndex < 0 || currentTargetIndex >= targets.length) {
+      layer.msg('请先选择商城', {icon: 2});
+      return;
+    }
+    var isEdit = !!goodsRow;
+    var title = isEdit ? '编辑商品' : '新增商品';
+    var g = goodsRow || {id: '', dyPool: 'rq', hourlyPrices: [], hourlyIntegrals: []};
+    layer.open({
+      type: 1,
+      title: title,
+      area: ['420px', 'auto'],
+      shadeClose: true,
+      content:
+        '<div class="layui-form" style="margin: 20px;" lay-filter="goodsEditForm">' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">商品ID</label>' +
+        '    <div class="layui-input-block">' +
+        '      <input type="text" name="id" required lay-verify="required|number" autocomplete="off" class="layui-input" value="' + (g.id || '') + '">' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <label class="layui-form-label">dyPool</label>' +
+        '    <div class="layui-input-block">' +
+        '      <select name="dyPool">' +
+        '        <option value="rq"' + ((g.dyPool || 'rq') === 'rq' ? ' selected' : '') + '>rq</option>' +
+        '        <option value="pp"' + ((g.dyPool || 'rq') === 'pp' ? ' selected' : '') + '>pp</option>' +
+        '      </select>' +
+        '    </div>' +
+        '  </div>' +
+        '  <div class="layui-form-item">' +
+        '    <div class="layui-input-block">' +
+        '      <button class="layui-btn" lay-submit lay-filter="goodsEditSubmit">确 定</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>',
+      success: function (layero, indexLayer) {
+        form.render();
+        form.on('submit(goodsEditSubmit)', function (dataForm) {
+          var f = dataForm.field;
+          var goods = targets[currentTargetIndex].goods || [];
+          var newId = parseInt(f.id, 10);
+          var exists = goods.some(function (item) {
+            if (isEdit && item === g) return false;
+            return String(item.id) === String(newId);
+          });
+          if (exists) {
+            layer.msg('同一商城内商品ID不能重复', {icon: 2});
+            return false;
+          }
+          if (isEdit) {
+            g.id = newId;
+            g.dyPool = f.dyPool;
+          } else {
+            goods.push({
+              id: newId,
+              dyPool: f.dyPool,
+              hourlyPrices: new Array(24).fill(null),
+              hourlyIntegrals: new Array(24).fill(null)
+            });
+            targets[currentTargetIndex].goods = goods;
+          }
+          renderGoodsTable();
+          layer.close(indexLayer);
+          return false;
+        });
+      }
+    });
+  }
+
+  function openHourlyEditDialog(goodsRow) {
+    if (!goodsRow) return;
+    var prices = goodsRow.hourlyPrices || new Array(24).fill(null);
+    var integrals = goodsRow.hourlyIntegrals || new Array(24).fill(null);
+    var html = '<div class="layui-form" style="margin: 15px;" lay-filter="hourlyForm">' +
+      '<table class="layui-table">' +
+      '<thead><tr><th>小时</th><th>hourlyPrices</th><th>hourlyIntegrals</th></tr></thead><tbody>';
+    for (var h = 0; h < 24; h++) {
+      html += '<tr>' +
+        '<td>' + h + '</td>' +
+        '<td><input type="text" name="price_' + h + '" autocomplete="off" class="layui-input" value="' + (prices[h] != null ? prices[h] : '') + '"></td>' +
+        '<td><input type="text" name="integral_' + h + '" autocomplete="off" class="layui-input" value="' + (integrals[h] != null ? integrals[h] : '') + '"></td>' +
+        '</tr>';
+    }
+    html += '</tbody></table>' +
+      '<div class="layui-form-item">' +
+      '  <div class="layui-input-block" style="text-align: right;">' +
+      '    <button class="layui-btn" lay-submit lay-filter="hourlySubmit">确 定</button>' +
+      '  </div>' +
+      '</div>' +
+      '</div>';
+
+    layer.open({
+      type: 1,
+      title: '编辑 24 小时价格/积分（ID：' + goodsRow.id + '）',
+      area: ['700px', '600px'],
+      shadeClose: true,
+      content: html,
+      success: function (layero, indexLayer) {
+        form.render();
+        form.on('submit(hourlySubmit)', function (dataForm) {
+          var f = dataForm.field;
+          var newPrices = new Array(24).fill(null);
+          var newIntegrals = new Array(24).fill(null);
+          for (var h = 0; h < 24; h++) {
+            var p = f['price_' + h];
+            var ig = f['integral_' + h];
+            newPrices[h] = parseNumberOrNull(p);
+            newIntegrals[h] = parseNumberOrNull(ig);
+          }
+          goodsRow.hourlyPrices = newPrices;
+          goodsRow.hourlyIntegrals = newIntegrals;
+          renderGoodsTable();
+          layer.close(indexLayer);
+          return false;
+        });
+      }
+    });
+  }
+
+  loadConfig();
+});
+</script>

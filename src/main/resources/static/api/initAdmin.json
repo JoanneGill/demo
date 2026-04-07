@@ -52,6 +52,12 @@
           "href": "ppTaskManage.html",
           "icon": "fa fa-tasks",
           "target": "_self"
+        },
+        {
+          "title": "ly 配置管理",
+          "href": "lyConfigManage.html",
+          "icon": "fa fa-cog",
+          "target": "_self"
         }
 
       ]
