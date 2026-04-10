@@ -611,7 +611,6 @@ private final Map<String, Deque<Long>> taskClaimTimestamps = new HashMap<>();
         for (int i = 0; i < deviceDataList.size(); i++) {
             // 第一次发送请求接收到 workingTime
             if (deviceDataList.get(i).getDeviceId().equals(checkInfo.deviceId) && deviceDataList.get(i).getStartWorkingState() == null) {
-                log.info("第一次找到 device");
                 deviceDataList.get(i).setStartWorkingState(systemTime);
                 deviceDataList.get(i).setLastWorkingState(systemTime);
                 deviceDataList.get(i).setState(systemTime);

@@ -102,6 +102,20 @@
                                             <div class="panel layui-bg-number">
                                                 <div class="panel-body">
                                                     <div class="panel-title">
+                                                        <!--                                                        <span class="label pull-right layui-bg-orange"></span>-->
+                                                        <h5>今日设备pp成功数量</h5>
+                                                    </div>
+                                                    <div class="panel-content">
+                                                        <h1 class="no-margins" id="ppTaskNumberSuccess">0</h1>
+                                                        <small>今日设备pp成功数量</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-col-xs4">
+                                            <div class="panel layui-bg-number">
+                                                <div class="panel-body">
+                                                    <div class="panel-title">
                                                         <!--                                                        <span class="label pull-right layui-bg-orange">实时</span>-->
                                                         <h5>设备总数</h5>
                                                     </div>
@@ -236,6 +250,7 @@
                 let todayTotalTaskIntegral = 0
                 let ppWaitDevices = 0;     // pp在线设备数
                 let ppWorkingDevices = 0;  // pp任务中设备数
+                let ppTaskNumberSuccess = 0;  // pp任务中设备数
                 let timeNow = new Date().getTime()
                 let leastCurrentTime = timeNow - 1000 * 100; // 当前时间 - 60s
 
@@ -253,14 +268,15 @@
                     // PP任务统计（口径同 AdminController#welcomeInfo）
                     // pp在线：ppClaimState != null && ppClaimTime > leastCurrentTime
                     // pp任务中：ppClaimState == 'claimed'
-                    if (res.data[i].ppClaimState != null
-                        && res.data[i].ppClaimTime != null
+                    if ( res.data[i].ppClaimTime != null
                         && Number(res.data[i].ppClaimTime) > leastCurrentTime) {
                         ppWaitDevices++;
-                        if (res.data[i].ppClaimState === 'claimed') {
+                        if (res.data[i].ppClaimState != null
+                            &&res.data[i].ppClaimState === 'claimed') {
                             ppWorkingDevices++;
                         }
                     }
+                    ppTaskNumberSuccess += res.data[i].todayPpTaskNumberSuccess
                 }
 
 
@@ -274,6 +290,7 @@
                 $("#todayTotalTaskIntegral").html(todayTotalTaskIntegral)
                 $("#ppWaitDevices").html(ppWaitDevices)
                 $("#ppWorkingDevices").html(ppWorkingDevices)
+                $("#ppTaskNumberSuccess").html(ppTaskNumberSuccess)
 
                 // $("#todayTotalIntegral").html(data.data.todayTotalIntegral)
                 // $("#todayExchangeIntegral").html(data.data.todayExchangeIntegral)
@@ -313,6 +330,8 @@
                 {field: 'diamond', title: '最近一次钻石余额', sort: true},
                 {field: 'todayTaskNumber', title: '今日领取任务数', sort: true},
                 {field: 'todayTaskIntegral', title: '今日产生有效积分', sort: true},
+                {field: 'todayPpTaskNumberSuccess', title: '今日产pp成功', sort: true},
+                {field: 'todayPpTaskNumberFail', title: '今日pp失败', sort: true},
                 {fixed: 'right', title:'操作', width: 134, minWidth: 125, toolbar: '#barDemo'}
             ]],
             limits: [ 50, 100,1000,1500],

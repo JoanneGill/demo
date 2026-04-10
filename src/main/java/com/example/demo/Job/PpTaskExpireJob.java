@@ -38,7 +38,7 @@ public class PpTaskExpireJob {
     /**
      * 根据 Dy 设备数调整 YL 商品状态，并按小时更新绑定商品价格。
      */
-//    @Scheduled(fixedDelay = 10 * 1000)
+    @Scheduled(fixedDelay = 10 * 1000)
     public void checkGoodsDevice() {
         ylOrderBusinessService.syncGoodsStockAndHourlyPrice();
     }

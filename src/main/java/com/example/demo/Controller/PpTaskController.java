@@ -1,5 +1,6 @@
 package com.example.demo.Controller;
 
+import cn.hutool.crypto.SecureUtil;
 import com.example.demo.Config.AjaxResult;
 import com.example.demo.Data.PpTaskClaim;
 import com.example.demo.Service.PpTaskDispatchService;
@@ -30,12 +31,17 @@ public class PpTaskController {
     }
 
     @GetMapping("/finish")
-    public AjaxResult finish(@RequestParam BigInteger claimId,
+    public AjaxResult finish(@RequestParam String  token,
+                             @RequestParam BigInteger claimId,
                              @RequestParam String deviceId,
                              @RequestParam Boolean success,
                              @RequestParam(required = false) String msg,
                              @RequestParam(required = false) Integer diamond,
                              @RequestParam(required = false) Boolean videoDieOut) {
+        String md5 = SecureUtil.md5(claimId+deviceId+success+diamond+videoDieOut+"sb1314520sbNB$HHHHHHHH");
+        if (!md5.equals(token)) {
+            return AjaxResult.error("Invalid token");
+        }
         try {
             if (Boolean.TRUE.equals(success)) {
                 ppTaskDispatchService.finishSuccess(claimId, deviceId,msg,diamond);

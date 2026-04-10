@@ -30,6 +30,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -220,6 +221,7 @@ public class AdminController {
         int ppWaitDoDevices = 0;
         int ppNotDoDevices = 0;
         int ppWorkingDevices = 0;
+        int ppTaskNumberSuccess = 0;
         Long leastCurrentTime =   currentTime -1000*60;
         for (int i = 0; i < deviceDataListGlobe.size(); i++) {
             DeviceData deviceData = deviceDataListGlobe.get(i);
@@ -246,7 +248,7 @@ public class AdminController {
             else if (deviceData.getPpModel()!=null && deviceData.getPpModel().equals(PP_TASK_DEVICE_PP_MODEL_NOT_DO)){
                 ppNotDoDevices++;
             }
-
+            ppTaskNumberSuccess =  Objects.requireNonNullElse(deviceData.getTodayPpTaskNumberSuccess(),0) + ppTaskNumberSuccess;
         }
 
         //统计今日生成总积分
@@ -267,11 +269,11 @@ public class AdminController {
          jsonObject.set("ppWaitDoDevices",ppWaitDoDevices); // pp等待做设备
          jsonObject.set("ppNotDoDevices",ppNotDoDevices); // pp不做设备
          jsonObject.set("ppWorkingDevices",ppWorkingDevices); //pp任务中设备
+         jsonObject.set("ppTaskNumberSuccess",ppTaskNumberSuccess); //今日成功pp任务数量
          if (hashMap != null){
              jsonObject.set("todayExchangeIntegral",hashMap.get("todayExchangeIntegral"));
              jsonObject.set("todayAlreadyExchangeIntegral",hashMap.get("todayAlreadyExchangeIntegral"));
          }
-
          return AjaxResult.success(jsonObject);
         }
 
@@ -309,9 +311,6 @@ public class AdminController {
         return AjaxResult.success();
 
     }
-
-
-
 
 
     @Auth(user = "1000")

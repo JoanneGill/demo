@@ -54,7 +54,7 @@ public class DevicesModel {
         //任务中
         if (state.equals("working")){
             deviceDataList.stream().parallel().forEach( deviceData -> {
-                        if (cardNo.equals(deviceData.getCardNo())&& deviceData.getState()+1000*100 > now && !deviceData.getRoomId().isEmpty() ){
+                        if (cardNo.equals(deviceData.getCardNo())&& deviceData.getState()+1000*100 > now && deviceData.getRoomId()!= null&& !deviceData.getRoomId().isEmpty() ){
                             userDeviceDataList.add(deviceData);
                         }
                     }
