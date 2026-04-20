@@ -116,16 +116,17 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     @Transactional
     public void finishSuccess(BigInteger claimId, String deviceId,String msg,Integer diamond) {
         long now = System.currentTimeMillis();
+        PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
+            if (claim == null) {
+                throw new IllegalArgumentException("Claim not found: " + claimId);
+            }
         CompletableFuture.runAsync(() ->
                 deviceList.stream()
                         .filter(d -> deviceId.equals(d.getDeviceId()))
                         .findFirst()
                         .ifPresent(d -> { d.setPpClaimTime(now); d.setPpClaimState(null); d.setDiamond(diamond);
-                            d.setTodayPpTaskNumberSuccess(Objects.requireNonNullElse(d.getTodayPpTaskNumberSuccess(), 0) + 1);;}));
-        PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
-            if (claim == null) {
-                throw new IllegalArgumentException("Claim not found: " + claimId);
-            }
+                            d.setTodayPpTaskNumberSuccess(Objects.requireNonNullElse(d.getTodayPpTaskNumberSuccess(), 0) + 1);
+                            d.setTodayPpTaskIntegral(Objects.requireNonNullElse(d.getTodayPpTaskIntegral(),0)+claim.getIntegral());}));
             if (!deviceId.equals(claim.getDeviceId())) {
                 throw new IllegalArgumentException("Device mismatch for claim " + claimId);
             }
@@ -219,6 +220,12 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
                 if (marked == 0) {
                     log.error("Task fail expired {} already full or no received_number to decrement when expiring claim {}, taskId={}", c.getTaskId(), c.getId(), c.getTaskId());
                 }
+                // 给机器加上 错误次数
+                CompletableFuture.runAsync(() ->
+                        deviceList.stream()
+                                .filter(d -> c.getDeviceId().equals(d.getDeviceId()))
+                                .findFirst()
+                                .ifPresent(d -> { d.setPpClaimState(null); d.setTodayPpTaskNumberFail(Objects.requireNonNullElse(d.getTodayPpTaskNumberFail(),0)+1);}));
             }
             // 如果不足 batchSize，说明基本处理完了
             if (overdue.size() < batchSize) {

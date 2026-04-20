@@ -222,6 +222,7 @@ public class AdminController {
         int ppNotDoDevices = 0;
         int ppWorkingDevices = 0;
         int ppTaskNumberSuccess = 0;
+        int ppTaskIntegral = 0;
         Long leastCurrentTime =   currentTime -1000*60;
         for (int i = 0; i < deviceDataListGlobe.size(); i++) {
             DeviceData deviceData = deviceDataListGlobe.get(i);
@@ -249,6 +250,7 @@ public class AdminController {
                 ppNotDoDevices++;
             }
             ppTaskNumberSuccess =  Objects.requireNonNullElse(deviceData.getTodayPpTaskNumberSuccess(),0) + ppTaskNumberSuccess;
+            ppTaskIntegral = Objects.requireNonNullElse(deviceData.getTodayPpTaskIntegral(),0)+ppTaskIntegral;
         }
 
         //统计今日生成总积分
@@ -270,6 +272,7 @@ public class AdminController {
          jsonObject.set("ppNotDoDevices",ppNotDoDevices); // pp不做设备
          jsonObject.set("ppWorkingDevices",ppWorkingDevices); //pp任务中设备
          jsonObject.set("ppTaskNumberSuccess",ppTaskNumberSuccess); //今日成功pp任务数量
+         jsonObject.set("ppTaskIntegral",ppTaskIntegral); //今日成功pp任务数量
          if (hashMap != null){
              jsonObject.set("todayExchangeIntegral",hashMap.get("todayExchangeIntegral"));
              jsonObject.set("todayAlreadyExchangeIntegral",hashMap.get("todayAlreadyExchangeIntegral"));

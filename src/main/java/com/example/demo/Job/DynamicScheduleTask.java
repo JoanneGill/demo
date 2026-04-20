@@ -226,6 +226,7 @@ public class DynamicScheduleTask  {
             deviceDataListGlobe.get(i).setTodayPpTaskNumberSuccess(0);
             deviceDataListGlobe.get(i).setTodayPpTaskNumberFail(0);
             deviceDataListGlobe.get(i).setTodayTaskNumber(0);
+            deviceDataListGlobe.get(i).setTodayPpTaskIntegral(0);
             //清除过久没登录的设备
             if (deviceDataListGlobe.get(i).getState()+24*3600*1000<now){
                 deviceDataListGlobe.remove(i);

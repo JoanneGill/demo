@@ -7,10 +7,7 @@ import com.example.demo.Service.LyConfigFileService;
 import com.example.demo.Service.YLmall;
 import com.example.demo.dto.LyGoodsDto;
 import com.example.demo.dto.LyTargetDto;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -261,7 +258,7 @@ public class LyConfigController {
         return t.isEmpty() ? null : t;
     }
 
-    private static com.google.gson.JsonElement bigDecimalAsJson(BigDecimal v) {
+    private static JsonElement bigDecimalAsJson(BigDecimal v) {
         if (v == null) {
             return JsonNull.INSTANCE;
         }

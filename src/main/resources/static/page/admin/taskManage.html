@@ -144,6 +144,7 @@
             cols: [[
                 {type: "checkbox", width: 50},
                 {field: 'roomId', title: '直播id', sort: true},
+                {field: 'personAddress', title: '链接', sort: true, templet: function(d){ return (d.personAddress && d.personAddress.toString().trim() !== '') ? d.personAddress : d.roomAddress; }},
                 {field: 'videoName', title: '名称', sort: true},
                 {field: 'duration', title: '时长',width: 80},
                 {field: 'integral', title: '积分/分', sort: true},

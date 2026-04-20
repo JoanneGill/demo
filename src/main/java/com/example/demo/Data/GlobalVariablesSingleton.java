@@ -11,7 +11,6 @@ public class GlobalVariablesSingleton {
 
     private static GlobalVariablesSingleton instance = new GlobalVariablesSingleton();
 
-    private Long globalVar;
 
 
    //任务列表
@@ -24,7 +23,6 @@ public class GlobalVariablesSingleton {
 
     private GlobalVariablesSingleton() {
         // 初始化全局变量
-        globalVar = 0L;
         taskDataArrayList = new ArrayList<TaskData>();
         users = new ArrayList<User>();
         deviceDataArrayList = new ArrayList<DeviceData>(1500);
@@ -35,9 +33,6 @@ public class GlobalVariablesSingleton {
         return instance;
     }
 
-    public Long getGlobalVar() {
-        return globalVar;
-    }
 
 
     public ArrayList<TaskData> getTaskDataArrayList() {

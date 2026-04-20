@@ -15,6 +15,7 @@ public class DeviceData {
     private String screenImgUrl;
     private Integer todayTaskNumber;//今日领取任务数
     private Long todayTaskIntegral;//今日产生有效积分
+    private Integer todayPpTaskIntegral;//今日pp产生有效积分
     private Long state; // 最近一次在线时间 时间戳
     private Long ppClaimTime; //
     private String ppClaimState; //

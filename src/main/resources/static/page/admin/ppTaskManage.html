@@ -104,8 +104,8 @@
                 cols: isHistory
                     ? [[
                         {type: "checkbox", width: 50},
-                        {field: 'id', title: 'ID', width: 80},
                         {field: 'roomId', title: '直播间ID'},
+                        {field: 'personAddress', title: '个人主页'},
                         {field: 'personName', title: '主播名称'},
                         {field: 'totalNumber', title: '总数量', width: 80},
                         {field: 'completedNumber', title: '完成数量', width: 80},
@@ -117,8 +117,8 @@
                     ]]
                     : [[
                         {type: "checkbox", width: 50},
-                        {field: 'id', title: 'ID', width: 80},
                         {field: 'roomId', title: '直播间ID'},
+                        {field: 'personAddress', title: '个人主页'},
                         {field: 'personName', title: '主播名称'},
                         {field: 'totalNumber', title: '总数量', width: 80},
                         {field: 'receivedNumber', title: '任务中数量', width: 80},
@@ -361,15 +361,18 @@
                         response: {statusCode: 200},
                         cols: [[
                             {field: 'id', title: 'ID', width: 80},
-                            {field: 'deviceId', title: '设备ID'},
+                            {field: 'cardNo', title: '用户', width: 80},
                             {field: 'deviceNickName', title: '设备昵称'},
-                            // {field: 'status', title: '状态', width: 100, templet: function (d) {
-                            //         var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
-                            //         var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
-                            //         var c = colorMap[d.status] || 'black';
-                            //         var l = labelMap[d.status] || d.status;
-                            //         return '<span style="color:' + c + '">' + l + '</span>';
-                            //     }},
+                            {field: 'devicePersonName', title: '设备抖音昵称'},
+                            {field: 'status', title: '状态', width: 100, templet: function (d) {
+                                    var colorMap = {claimed: 'blue', success: 'green', fail: 'red', expired: 'gray'};
+                                    var labelMap = {claimed: '已领取',  success: '成功', fail: '失败',expired: '已过期'};
+                                    var c = colorMap[d.status] || 'black';
+                                    var l = labelMap[d.status] || d.status;
+                                    return '<span style="color:' + c + '">' + l + '</span>';
+                                }},
+                            {field: 'msg', title: '完成信息'},
+                            {field: 'diamond', title: '抖币'},
                             {field: 'beginTime', title: '开始时间'},
                             {field: 'completedTime', title: '完成时间'},
                             {field: 'archivedTime', title: '归档时间'}
@@ -408,11 +411,12 @@
                         response: {statusCode: 200},
                         cols: [[
                             {field: 'id', title: 'ID', width: 80},
-                            {field: 'deviceId', title: '设备ID'},
-                            {field: 'devicePersonName', title: '设备账号昵称'},
+                            {field: 'cardNo', title: '用户', width: 80},
+                            {field: 'deviceNickName', title: '设备昵称'},
+                            {field: 'devicePersonName', title: '设备抖音昵称'},
                             {field: 'status', title: '状态', width: 100, templet: function (d) {
-                                    var colorMap = {CLAIMED: 'blue', FINISHED: 'green', FAILED: 'red', EXPIRED: 'gray'};
-                                    var labelMap = {CLAIMED: '已领取', FINISHED: '已完成', FAILED: '失败', EXPIRED: '已过期'};
+                                    var colorMap = {claimed: 'blue', success: 'green', fail: 'red', expired: 'gray'};
+                                    var labelMap = {claimed: '已领取',  success: '成功', fail: '失败',expired: '已过期'};
                                     var c = colorMap[d.status] || 'black';
                                     var l = labelMap[d.status] || d.status;
                                     return '<span style="color:' + c + '">' + l + '</span>';
@@ -423,8 +427,8 @@
                             {title: '操作', width: 200, templet: function (d) {
                                     var btns = '';
                                     if (d.status === 'claimed') {
-                                        btns += '<a class="layui-btn layui-btn-xs layui-btn-danger claim-action" data-id="' + d.id + '" data-status="FAILED">标记失败</a> ';
-                                        btns += '<a class="layui-btn layui-btn-xs layui-btn-normal claim-action" data-id="' + d.id + '" data-status="EXPIRED">标记过期</a>';
+                                        btns += '<a class="layui-btn layui-btn-xs layui-btn-danger claim-action" data-id="' + d.id + '" data-status="fail">标记失败</a> ';
+                                        btns += '<a class="layui-btn layui-btn-xs layui-btn-normal claim-action" data-id="' + d.id + '" data-status="expired">标记过期</a>';
                                     }
                                     return btns || '-';
                                 }}
