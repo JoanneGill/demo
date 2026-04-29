@@ -82,9 +82,9 @@ public class YlOrderBusinessService {
                 if (dyTaskType.equals(DyTaskType.RQ)){
                     //检查
                     try {
-//                        if (litemallService.checkTask(taskData)){
+                        if (litemallService.checkTask(taskData)){
                             litemallService.setTask(taskData);
-//                        }
+                        }
                         postOrderState(target, order, YLApi.PAID, YLApi.COMPLETED, "发货成功");
                     }catch (BusinessException e){
                         log.error("设置 RQ 任务失败: {}", e.getMessage());
@@ -98,9 +98,9 @@ public class YlOrderBusinessService {
                 else if (dyTaskType.equals(DyTaskType.PP)){
                     //检查
                     try {
-//                        if (litemallService.checkPpTask(taskData)){
+                        if (litemallService.checkPpTask(taskData)){
                             litemallService.setPpTask(taskData);
-//                        }
+                        }
                         postOrderState(target, order, YLApi.PAID, YLApi.PROCESSING, "发货成功");
                     }catch (BusinessException e){
                         log.error("设置 PP 任务失败: {}", e.getMessage());

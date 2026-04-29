@@ -48,7 +48,7 @@ public class PpTaskClaimHistory {
     private String completedTime;
 
     // 归档时间
-    private Date archivedTime;
+    private String archivedTime;
 
     private String cardNo;
 

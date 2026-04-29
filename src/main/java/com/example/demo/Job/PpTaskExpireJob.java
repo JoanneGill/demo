@@ -30,18 +30,18 @@ public class PpTaskExpireJob {
     /**
      * 查询 YL 订单并执行发货/取消逻辑。
      */
-    @Scheduled(fixedDelay = 20 * 1000)
-    public void checkYLOrder() {
-        ylOrderBusinessService.processPaidOrdersAndFulfill();
-    }
+//    @Scheduled(fixedDelay = 20 * 1000)
+//    public void checkYLOrder() {
+//        ylOrderBusinessService.processPaidOrdersAndFulfill();
+//    }
 
     /**
      * 根据 Dy 设备数调整 YL 商品状态，并按小时更新绑定商品价格。
      */
-    @Scheduled(fixedDelay = 10 * 1000)
-    public void checkGoodsDevice() {
-        ylOrderBusinessService.syncGoodsStockAndHourlyPrice();
-    }
+//    @Scheduled(fixedDelay = 10 * 1000)
+//    public void checkGoodsDevice() {
+//        ylOrderBusinessService.syncGoodsStockAndHourlyPrice();
+//    }
 
 
 

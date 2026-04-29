@@ -103,28 +103,31 @@ public class PpTaskArchiveServiceImpl implements PpTaskArchiveService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void moveTasksToHistory(List<BigInteger> taskIds) {
         for (BigInteger taskId : taskIds) {
-            // 1. 锁定任务行，防止并发修改（如新认领）
-            PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
-            if (task == null) {
-                throw new RuntimeException("任务不存在，ID: " + taskId);
+            try {
+                PpTask task = ppTaskMapper.selectByIdForUpdate(taskId);
+                if (task == null) {
+                    throw new RuntimeException("任务不存在，ID: " + taskId);
+                }
+                // 2. 将任务主体插入历史表
+                ppTaskHistoryMapper.insertFromTask(taskId);
+
+                // 3. 将该任务的所有认领记录插入历史表
+                ppTaskClaimHistoryMapper.insertByTaskId(taskId);
+
+                // 4. 删除原表的认领记录
+                ppTaskClaimMapper.deleteByTaskId(taskId);
+
+                // 5. 删除原表任务
+                ppTaskMapper.deletePpTask(taskId, null);
+
+                log.error("任务已归档删除: taskId={}", taskId);
+            }catch (Exception e) {
+                log.error("任务归档失败: taskId={}, error={}", taskId, e.getMessage(), e);
+                throw new RuntimeException("任务归档失败: " + e.getMessage(), e);
             }
-
-            // 2. 将任务主体插入历史表
-            ppTaskHistoryMapper.insertFromTask(taskId);
-
-            // 3. 将该任务的所有认领记录插入历史表
-            ppTaskClaimHistoryMapper.insertByTaskId(taskId);
-
-            // 4. 删除原表的认领记录
-            ppTaskClaimMapper.deleteByTaskId(taskId);
-
-            // 5. 删除原表任务
-            ppTaskMapper.deletePpTask(taskId, null);
-
-            log.info("任务已归档删除: taskId={}", taskId);
         }
     }
 

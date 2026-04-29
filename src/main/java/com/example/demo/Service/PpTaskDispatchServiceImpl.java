@@ -58,7 +58,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     List<DeviceData> deviceList = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
     //在线设备对象列表
     List<DeviceData> deviceDataListGlobe = GlobalVariablesSingleton.getInstance().getDeviceDataArrayList();
-    @Value("${pptask.leaseMinutes:10}")
+    @Value("${pptask.leaseMinutes:5}")
     private int leaseMinutes;
 
 
@@ -113,7 +113,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class,timeout = 3000)
     public void finishSuccess(BigInteger claimId, String deviceId,String msg,Integer diamond) {
         long now = System.currentTimeMillis();
         PpTaskClaim claim = ppTaskClaimMapper.selectByIdForUpdate(claimId);
@@ -154,7 +154,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class,timeout = 3000)
     public void finishFail(BigInteger claimId, String deviceId,String msg,Integer diamond,Boolean videoDieOut ) {
         long now = System.currentTimeMillis();
         CompletableFuture.runAsync(() ->
@@ -184,7 +184,7 @@ public class PpTaskDispatchServiceImpl implements PpTaskDispatchService {
         if (videoDieOut != null && videoDieOut) {
             checkCache.asMap().merge(String.valueOf(claim.getTaskId()),1, Integer::sum);
             //删除任务 直播结束
-            if (checkCache.getIfPresent(String.valueOf(claim.getTaskId())) != null && checkCache.getIfPresent(String.valueOf(claim.getTaskId())) > 10){
+            if (checkCache.getIfPresent(String.valueOf(claim.getTaskId())) != null && checkCache.getIfPresent(String.valueOf(claim.getTaskId())) > 3){
                 ppTaskArchiveService.moveTasksToHistory(new ArrayList<>(List.of(claim.getTaskId())));
             }
         }

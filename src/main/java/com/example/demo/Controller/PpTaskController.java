@@ -36,18 +36,21 @@ public class PpTaskController {
                              @RequestParam String deviceId,
                              @RequestParam Boolean success,
                              @RequestParam(required = false) String msg,
-                             @RequestParam(required = false) Integer diamond,
+                             @RequestParam(required = false) String diamond,
                              @RequestParam(required = false) Boolean videoDieOut) {
         String md5 = SecureUtil.md5(claimId+deviceId+success+diamond+videoDieOut+"sb1314520sbNB$HHHHHHHH");
         if (!md5.equals(token)) {
             return AjaxResult.error("Invalid token");
         }
+        Integer diamondInt = (diamond == null || diamond.isBlank() || "null".equalsIgnoreCase(diamond))
+                ? null
+                : Integer.valueOf(diamond);
         try {
             if (Boolean.TRUE.equals(success)) {
-                ppTaskDispatchService.finishSuccess(claimId, deviceId,msg,diamond);
+                ppTaskDispatchService.finishSuccess(claimId, deviceId,msg,diamondInt);
                 return AjaxResult.success("FINISH_SUCCESS");
             } else {
-                ppTaskDispatchService.finishFail(claimId, deviceId,msg,diamond,videoDieOut);
+                ppTaskDispatchService.finishFail(claimId, deviceId,msg,diamondInt,videoDieOut);
                 return AjaxResult.success("FINISH_FAIL");
             }
         } catch (Exception e) {

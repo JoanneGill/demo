@@ -48,7 +48,7 @@ public class PpTaskHistory {
     private String createdTime;
 
     // 归档时间
-    private Date archivedTime;
+    private String archivedTime;
 
     private String ylAppId;
 
