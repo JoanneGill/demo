@@ -42,9 +42,7 @@ public class PpTaskController {
         if (!md5.equals(token)) {
             return AjaxResult.error("Invalid token");
         }
-        Integer diamondInt = (diamond == null || diamond.isBlank() || "null".equalsIgnoreCase(diamond))
-                ? null
-                : Integer.valueOf(diamond);
+        Integer diamondInt = (diamond == null || diamond.isBlank() || "null".equalsIgnoreCase(diamond)) ? null : Integer.valueOf(diamond);
         try {
             if (Boolean.TRUE.equals(success)) {
                 ppTaskDispatchService.finishSuccess(claimId, deviceId,msg,diamondInt);
